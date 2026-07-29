@@ -1,0 +1,196 @@
+:root {
+    --bg: #08111d;
+    --bg-soft: #0f1b2d;
+    --primary: #00A69C; /* Azul/Teal principal da DROZ */
+    --primary-2: #00C7BB; /* Azul secundário mais claro para gradientes */
+    --text: #eaf0ff;
+    --muted: #8ea1c1;
+    --card: rgba(12, 23, 39, 0.86);
+    --border: rgba(255, 255, 255, 0.09);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: radial-gradient(circle at top, rgba(0, 166, 156, 0.14), transparent 25%),
+                linear-gradient(180deg, #05101c 0%, #08111d 45%, #060b12 100%);
+    color: var(--text);
+}
+
+a { text-decoration: none; }
+
+/* ==========================================
+   COMPONENTES BASE & NAVEGAÇÃO
+========================================== */
+.topbar { background: rgba(0, 0, 0, 0.25); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
+.main-nav { background: rgba(6, 13, 24, 0.9); border-bottom: 1px solid var(--border); backdrop-filter: blur(16px); }
+
+.brand-mark {
+    width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    color: #0a0f18; font-weight: 800; box-shadow: 0 12px 30px rgba(0, 166, 156, 0.35);
+}
+
+.navbar .nav-link { color: rgba(234, 240, 255, 0.78); font-weight: 500; }
+.navbar .nav-link.active, .navbar .nav-link:hover { color: #fff; }
+
+/* ==========================================
+   HERO SECTION
+========================================== */
+.hero { position: relative; overflow: hidden; padding: 5.5rem 0 4rem; }
+.hero::before, .hero::after { content: ''; position: absolute; border-radius: 50%; filter: blur(6px); opacity: 0.4; }
+.hero::before { width: 280px; height: 280px; background: rgba(0, 166, 156, 0.22); top: -70px; right: -50px; }
+.hero::after { width: 220px; height: 220px; background: rgba(56, 189, 248, 0.17); bottom: -60px; left: -40px; }
+
+.hero-title { font-size: clamp(2.3rem, 4vw, 4.2rem); font-weight: 800; line-height: 1.02; letter-spacing: -0.04em; }
+.hero-title span { background: linear-gradient(135deg, var(--primary), var(--primary-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero-text { color: #bfd0eb; font-size: 1.05rem; line-height: 1.8; }
+
+/* ==========================================
+   CARDS & ELEMENTOS VISUAIS
+========================================== */
+.hero-card, .glass-card, .product-card, .info-card {
+    background: var(--card); border: 1px solid var(--border);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22); backdrop-filter: blur(18px);
+}
+.hero-card { border-radius: 28px; padding: 2rem; }
+
+.badge-soft {
+    display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .85rem;
+    border-radius: 999px; background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-size: .88rem;
+}
+
+.icon-circle {
+    width: 58px; height: 58px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(0, 166, 156, 0.22), rgba(0, 199, 187, 0.18));
+    border: 1px solid rgba(255, 255, 255, 0.08); font-size: 1.35rem;
+}
+
+.stat-box { border-radius: 22px; padding: 1.2rem; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); height: 100%; }
+.stat-number { font-size: 1.8rem; font-weight: 800; margin-bottom: 0; }
+.stat-label { color: var(--muted); margin-bottom: 0; }
+
+/* ==========================================
+   PRODUTOS
+========================================== */
+.product-card { border-radius: 24px; overflow: hidden; height: 100%; transition: transform .2s ease, box-shadow .2s ease; }
+.product-card:hover { transform: translateY(-6px); box-shadow: 0 22px 50px rgba(0, 0, 0, 0.30); }
+.product-card img { width: 100%; height: 220px; object-fit: cover; }
+.product-body { padding: 1.35rem; }
+.price { font-size: 1.4rem; font-weight: 800; color: #fff; }
+.small-muted { color: var(--muted); font-size: .93rem; }
+.badge-category { background: rgba(0, 166, 156, 0.14); border: 1px solid rgba(0, 166, 156, 0.25); color: #B3F0EB; }
+
+/* ==========================================
+   BOTÕES, INPUTS E TABELAS
+========================================== */
+.btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); border: 0; color: #06101c; font-weight: 700; box-shadow: 0 12px 28px rgba(0, 166, 156, 0.24); }
+.btn-primary:hover { color: #06101c; filter: brightness(1.03); }
+.btn-outline-light { border-color: rgba(255,255,255,.18); }
+.form-control, .form-select, .input-group-text { background-color: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #fff; }
+.form-control::placeholder { color: rgba(234,240,255,0.45); }
+.form-control:focus, .form-select:focus { box-shadow: 0 0 0 .2rem rgba(0, 166, 156, 0.18); border-color: rgba(0, 166, 156, 0.35); background-color: rgba(255,255,255,0.06); color: #fff; }
+
+.table { color: var(--text); }
+.table thead th { color: #fff; border-bottom-color: var(--border); }
+.table td, .table th { border-color: var(--border); }
+
+/* ==========================================
+   FOOTER E TIMELINE
+========================================== */
+.footer { background: #04090f; border-top: 1px solid var(--border); }
+.footer-links a { color: rgba(234, 240, 255, 0.66); }
+.footer-links a:hover { color: #fff; }
+
+.timeline { position: relative; padding-left: 1.5rem; border-left: 2px solid rgba(255,255,255,0.12); margin-top: 20px; }
+.timeline .step { position: relative; padding-bottom: 1.25rem; }
+.timeline .step::before { content: ''; position: absolute; left: -1.65rem; top: .25rem; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-2)); box-shadow: 0 0 0 4px rgba(0, 166, 156, 0.12); }
+
+/* ==========================================
+   PADRONIZAÇÃO GERAL
+========================================== */
+.container { max-width: 1320px !important; }
+section { position: relative; }
+.section-title, .section-subtitle { text-align: center; }
+.section-subtitle { margin-left: auto; margin-right: auto; }
+.carousel-inner img { height: 420px; object-fit: cover; width: 100%; border-radius: 18px; }
+
+/* ==========================================
+   SEÇÃO DIFERENCIAIS (SOLUÇÃO DEFINITIVA COM GRID)
+========================================== */
+
+/* 1. Garante o estiramento horizontal entre as duas grandes colunas */
+.diferenciais-row {
+    align-items: stretch !important;
+}
+
+.diferenciais-row > .col-lg-8,
+.diferenciais-row > .col-lg-4 {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 2. O card da esquerda agora cresce 100% do espaço */
+.diferenciais-row > .col-lg-8 > .glass-card {
+    flex-grow: 1;
+    height: 100%;
+}
+
+/* 3. A mágica do lado direito: Usamos CSS Grid para forçar o item de 
+      baixo a preencher todo o resto do espaço disponível! */
+.diferenciais-row > .col-lg-4 > .row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr); /* Cria as duas colunas superiores */
+    grid-template-rows: auto 1fr;          /* Linha de cima automática, linha de baixo preenche o resto */
+    gap: 1rem;                             /* Substitui o 'g-3' do Bootstrap */
+    margin: 0 !important;                  /* Anula a margem negativa padrão do Bootstrap */
+    padding: 0 !important;
+    flex-grow: 1;
+}
+
+/* Desliga os espaçamentos padrão do Bootstrap dentro deste Grid para não quebrar o layout */
+.diferenciais-row > .col-lg-4 > .row > [class*="col-"] {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex;
+    flex-direction: column;
+}
+
+/* O card de baixo precisa ocupar as duas colunas do Grid */
+.diferenciais-row > .col-lg-4 > .row > .col-12 {
+    grid-column: 1 / -1;
+}
+
+/* 4. Estica o conteúdo interno de todos os elementos */
+.diferenciais-row .stat-box {
+    height: 100%;
+    min-height: 105px;
+}
+
+.diferenciais-row .principal-card {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+/* 5. Mantém responsivo para telas menores (celulares em pé empilham em 1 coluna) */
+@media (max-width: 575px) {
+    .diferenciais-row > .col-lg-4 > .row {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* Substitua a regra antiga por esta: */
+.img-carrossel {
+    height: 420px !important; /* Altura fixa para manter o design */
+    width: 100% !important;
+    object-fit: cover; /* Faz a imagem preencher o espaço sem distorcer (faz um crop automático) */
+    border-radius: 18px;
+}
