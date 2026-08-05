@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/includes/funcoes.php';
-require_once __DIR__ . '/config/conexao.php';
+require_once __DIR__ . '/../includes/funcoes.php';
+require_once __DIR__ . '/../config/conexao.php';
 
 $tituloPagina = 'Contato';
 $descricaoPagina = 'Fale com a DROZ Robótica e solicite orçamento para automação industrial e robótica.';
@@ -55,9 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="/../assets/css/style.css?v=2">
 <section class="py-5">
     <div class="container">
         <div class="row justify-content-center">
@@ -171,4 +171,4 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

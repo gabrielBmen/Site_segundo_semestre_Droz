@@ -3,9 +3,10 @@ $tituloPagina = 'Produtos';
 $descricaoPagina = 'Catálogo de produtos e soluções da DROZ Robótica.';
 $paginaAtiva = 'produtos';
 
-require_once __DIR__ . '/includes/funcoes.php';
-require_once __DIR__ . '/config/conexao.php'; // INCLUSÃO ADICIONADA: Atendendo à recuperação de dados reais do BD
-include __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/funcoes.php';
+require_once __DIR__ . '/../config/conexao.php'; // INCLUSÃO ADICIONADA: Atendendo à recuperação de dados reais do BD
+include __DIR__ . '/../includes/header.php';
+
 
 $termo = trim($_GET['q'] ?? '');
 $categoria = trim($_GET['categoria'] ?? '');
@@ -33,7 +34,7 @@ $categorias = array_values(array_unique($categorias));
 
 $destaquesFiltrados = buscarProdutoPorSlug($catalogoProdutos, 'celula-robotizada-csr1');
 ?>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="/../assets/css/style.css?v=2">
 <section class="py-5">
     <div class="container">
         <div class="row align-items-end g-3 mb-4">
@@ -114,4 +115,4 @@ $destaquesFiltrados = buscarProdutoPorSlug($catalogoProdutos, 'celula-robotizada
     </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

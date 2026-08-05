@@ -1,7 +1,7 @@
 <?php
-$host = "192.168.56.102";
-$user = "gabrielBM";
-$password = "Rafa2020"; // Variável corrigida
+$host = "drozrobotica.local";
+$user = "root";
+$password = ""; // Variável corrigida
 $database = "droz_robotica"; // Variável corrigida
 
 try {

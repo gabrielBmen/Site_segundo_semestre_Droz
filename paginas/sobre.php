@@ -2,10 +2,10 @@
 $tituloPagina = 'Sobre';
 $descricaoPagina = 'Conheça a história, os diferenciais e a atuação da DROZ Robótica.';
 $paginaAtiva = 'sobre';
-require_once __DIR__ . '/includes/funcoes.php';
-include __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/funcoes.php';
+include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="/../assets/css/style.css?v=2">
 <section class="py-5">
     <div class="container">
         <div class="row g-4 align-items-center">
@@ -67,4 +67,4 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -3,8 +3,8 @@ $tituloPagina = 'Home';
 $descricaoPagina = 'Site institucional e de vendas da DROZ Robótica.';
 $paginaAtiva = 'home';
 
-require_once __DIR__ . '/includes/funcoes.php';
-require_once __DIR__ . '/config/conexao.php'; // INCLUSÃO CORRIGIDA: Agora busca dados reais do Banco de Dados
+require_once __DIR__ . '/../includes/funcoes.php';
+require_once __DIR__ . '/../config/conexao.php'; // INCLUSÃO CORRIGIDA: Agora busca dados reais do Banco de Dados
 
 $destaques = array_slice($produtosDestaque, 0, 3);
 $produtosCaros = filtrarProdutosPorPreco($catalogoProdutos, 90000);
@@ -29,9 +29,9 @@ $slidesCarrossel = [
     ]
 ];
 
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="/../assets/css/style.css?v=2">
 <section class="hero">
     <div class="container position-relative">
         <div class="row g-4 align-items-stretch">
@@ -74,7 +74,9 @@ include __DIR__ . '/includes/header.php';
                             <!-- LOOP DO CARROSSEL CORRIGIDO PARA USAR O ARRAY ESTRUTURADO -->
                             <?php foreach ($slidesCarrossel as $key => $slide): ?>
                                 <div class="carousel-item <?= $key === 0 ? 'active' : '' ?>">
-                                    <img src="<?= e($slide['imagem']) ?>" class="d-block w-100 img-carrossel" alt="<?= e($slide['nome']) ?>">
+                                    <img src="../<?= e($slide['imagem']) ?>"
+                                        class="d-block w-100 img-carrossel"
+                                        alt="<?= e($slide['nome']) ?>">
                                 </div>
                             <?php endforeach; ?>
                         </div>
@@ -248,4 +250,4 @@ include __DIR__ . '/includes/header.php';
     </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>
