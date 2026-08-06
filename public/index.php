@@ -31,7 +31,7 @@ $slidesCarrossel = [
 
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="/../assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 <section class="hero">
     <div class="container position-relative">
         <div class="row g-4 align-items-stretch">

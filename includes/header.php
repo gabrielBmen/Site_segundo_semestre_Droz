@@ -26,7 +26,7 @@ if (!function_exists('e')) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/../assets/css/style.css">
+    <link rel="stylesheet" href="/../public/assets/css/style.css">
 </head>
 <body>
 <header class="topbar">
@@ -50,11 +50,11 @@ if (!function_exists('e')) {
         </button>
         <div class="collapse navbar-collapse" id="menuPrincipal">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'home' ? 'active' : '' ?>" href="/index.php">Home</a></li>
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'sobre' ? 'active' : '' ?>" href="/paginas/sobre.php">Sobre</a></li>
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'produtos' ? 'active' : '' ?>" href="/paginas/produtos.php">Produtos</a></li>
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'servicos' ? 'active' : '' ?>" href="/paginas/servicos.php">Serviços</a></li>
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'contato' ? 'active' : '' ?>" href="/paginas/contato.php">Contato</a></li>
+                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'home' ? 'active' : '' ?>" href="index.php">Home</a></li>
+                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'sobre' ? 'active' : '' ?>" href="sobre.php">Sobre</a></li>
+                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'produtos' ? 'active' : '' ?>" href="produtos.php">Produtos</a></li>
+                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'servicos' ? 'active' : '' ?>" href="servicos.php">Serviços</a></li>
+                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'contato' ? 'active' : '' ?>" href="contato.php">Contato</a></li>
             </ul>
             <div class="ms-lg-3 d-flex gap-2 mt-3 mt-lg-0">
                 <a href="produtos.php" class="btn btn-outline-light btn-sm">Catálogo</a>

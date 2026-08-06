@@ -5,7 +5,7 @@ $paginaAtiva = 'servicos';
 require_once __DIR__ . '/../includes/funcoes.php';
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="/../assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 <section class="py-5">
     <div class="container">
         <div class="text-center mb-5">

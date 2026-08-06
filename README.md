@@ -1,17 +1,7 @@
 # Projeto Web - DROZ Robótica
 
 ## Estrutura
-- `index.php`
-- `sobre.php`
-- `produtos.php`
-- `servicos.php`
-- `contato.php`
-- `includes/header.php`
-- `includes/footer.php`
-- `includes/funcoes.php`
-- `config/conexao.php`
-- `assets/css/style.css`
-- `database/droz_robotica.sql`
+
 
 ## Observações
 - A conexão em `config/conexao.php` usa IP fixo, como exigido na rubrica.

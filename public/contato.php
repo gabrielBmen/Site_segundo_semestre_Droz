@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 include __DIR__ . '/../includes/header.php';
 ?>
-<link rel="stylesheet" href="/../assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=2">
 <section class="py-5">
     <div class="container">
         <div class="row justify-content-center">
