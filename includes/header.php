@@ -42,7 +42,7 @@ if (!function_exists('e')) {
 <nav class="navbar navbar-expand-lg navbar-dark main-nav sticky-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="index.php">
-                <img src="/../assets/logo.png" alt="Logo DROZ" style="height: 38px; width: auto; border-radius: 8px;">
+                <img src="/../assets/imagens/logo.png" alt="Logo DROZ" style="height: 38px; width: auto; border-radius: 8px;">
                 <span>DROZ Robótica</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal" aria-controls="menuPrincipal" aria-expanded="false" aria-label="Alternar navegação">
