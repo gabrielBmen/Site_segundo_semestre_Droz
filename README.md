@@ -16,3 +16,8 @@
 3. Coloque o projeto no Apache.
 4. Configure o Apache para escutar na porta 8080.
 5. Acesse via `http://drozrobotica.local:8080`.
+
+
+## Autenticação
+
+O módulo de login está documentado em `README_LOGIN.md`. O visitante permanece livre para navegar, enquanto preços, detalhes completos das máquinas e contato exigem sessão.

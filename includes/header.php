@@ -11,6 +11,7 @@ if (!isset($paginaAtiva)) {
 if (!function_exists('e')) {
     require_once __DIR__ . '/funcoes.php';
 }
+require_once __DIR__ . '/auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -59,6 +60,11 @@ if (!function_exists('e')) {
             <div class="ms-lg-3 d-flex gap-2 mt-3 mt-lg-0">
                 <a href="produtos.php" class="btn btn-outline-light btn-sm">Catálogo</a>
                 <a href="contato.php" class="btn btn-primary btn-sm">Solicitar orçamento</a>
+                <?php if (usuarioLogado()): ?>
+                    <a href="logout.php" class="btn btn-outline-light btn-sm">Sair</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-outline-light btn-sm">Entrar</a>
+                <?php endif; ?>
             </div>
         </div>
     </div>

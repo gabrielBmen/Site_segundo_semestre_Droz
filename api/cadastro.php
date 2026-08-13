@@ -3,13 +3,9 @@
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/conexao.php';
-require_once __DIR__ . '/../classes/Login.php';
+require_once __DIR__ . '/../classes/Usuario.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
-require_once __DIR__ . '/../controllers/LoginController.php';
-
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+require_once __DIR__ . '/../controllers/UsuarioController.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -26,26 +22,20 @@ if (!is_array($dados)) {
     $dados = $_POST;
 }
 
-$email = (string) ($dados['email'] ?? '');
-$senha = (string) ($dados['senha'] ?? '');
-
-$redirect = (string) ($dados['redirect'] ?? '');
-
-if ($redirect === '' || str_starts_with($redirect, '//') || preg_match('/^[a-z][a-z0-9+.-]*:/i', $redirect)) {
-    $redirect = 'index.php';
-}
-
 try {
     $usuarioModel = new UsuarioModel($pdo);
-    $login = new Login($usuarioModel);
-    $controller = new LoginController($login);
+    $controller = new UsuarioController($usuarioModel);
 
-    $resultado = $controller->entrar($email, $senha);
+    $resultado = $controller->cadastrar(
+        (string) ($dados['nome'] ?? ''),
+        (string) ($dados['email'] ?? ''),
+        (string) ($dados['senha'] ?? ''),
+        (string) ($dados['confirmar_senha'] ?? ''),
+        (string) ($dados['telefone'] ?? '')
+    );
 
     http_response_code($resultado['status']);
-
     unset($resultado['status']);
-    $resultado['redirect'] = $redirect;
 
     echo json_encode($resultado, JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {

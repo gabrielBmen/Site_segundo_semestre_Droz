@@ -64,36 +64,36 @@ VALUES
 
 (
     1,
-    'assets/lado esquerdo CSR1.jpg',
+    'assets/imagens/lado esquerdo CSR1.jpg',
     TRUE
 ),
 
 (
     1,
-    'assets/Frente CSR1.jpg',
+    'assets/imagens/Frente CSR1.jpg',
     FALSE
 ),
 
 (
     1,
-    'assets/robo CSR1.jpg',
+    'assets/imagens/robo CSR1.jpg',
     FALSE
 ),
 
 (
     2,
-    'assets/robo CSR1.jpg',
+    'assets/imagens/robo CSR1.jpg',
     TRUE
 ),
 
 (
     3,
-    'assets/Frente CSR1.jpg',
+    'assets/imagens/Frente CSR1.jpg',
     TRUE
 ),
 
 (
     4,
-    'assets/Curso.jpg',
+    'assets/imagens/Curso.jpg',
     TRUE
 );
