@@ -17,15 +17,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const redirect = document.getElementById('redirect').value;
 
         try {
-            const resposta = await fetch('../api/login.php', {
+            const resposta = await fetch('/api/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha, redirect })
             });
 
+            const tipoConteudo = resposta.headers.get('content-type') || '';
+
+            if (!tipoConteudo.includes('application/json')) {
+                throw new Error(`Resposta inválida do servidor (HTTP ${resposta.status}).`);
+            }
+
             const resultado = await resposta.json();
 
-            if (!resultado.sucesso) {
+            if (!resposta.ok || !resultado.sucesso) {
                 mostrarMensagem(resultado.mensagem);
                 return;
             }
@@ -34,8 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             window.location.href = resultado.redirect;
         } catch (erro) {
-            console.error(erro);
-            mostrarMensagem('Não foi possível concluir o login.');
+            console.error('Erro no login:', erro);
+            mostrarMensagem('Não foi possível concluir o login. Verifique se o servidor e o banco de dados estão ativos.');
         }
     });
 });

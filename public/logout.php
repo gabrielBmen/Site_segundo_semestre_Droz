@@ -34,7 +34,7 @@ document.getElementById('btnLogout')?.addEventListener('click', async () => {
     const mensagem = document.getElementById('mensagemLogout');
 
     try {
-        const resposta = await fetch('../api/logout.php', { method: 'POST' });
+        const resposta = await fetch('/api/logout.php', { method: 'POST' });
         const resultado = await resposta.json();
 
         mensagem.className = 'alert alert-success mt-4';

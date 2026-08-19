@@ -79,6 +79,6 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </section>
 
-<script src="assets/js/cadastro.js?v=1"></script>
+<script src="assets/js/cadastro.js?v=2"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

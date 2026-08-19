@@ -21,15 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const resposta = await fetch('../api/cadastro.php', {
+            const resposta = await fetch('/api/cadastro.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dados)
             });
 
+            const tipoConteudo = resposta.headers.get('content-type') || '';
+
+            if (!tipoConteudo.includes('application/json')) {
+                throw new Error(`Resposta inválida do servidor (HTTP ${resposta.status}).`);
+            }
+
             const resultado = await resposta.json();
 
-            if (!resultado.sucesso) {
+            if (!resposta.ok || !resultado.sucesso) {
                 mostrarMensagem(resultado.mensagem);
                 return;
             }
@@ -43,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = url;
             }, 800);
         } catch (erro) {
-            console.error(erro);
-            mostrarMensagem('Não foi possível concluir o cadastro.');
+            console.error('Erro no cadastro:', erro);
+            mostrarMensagem('Não foi possível concluir o cadastro. Verifique se o servidor e o banco de dados estão ativos.');
         }
     });
 });

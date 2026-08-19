@@ -234,7 +234,7 @@ include __DIR__ . '/../includes/header.php';
 
 <link
     rel="stylesheet"
-    href="assets/css/style.css?v=2"
+    href="assets/css/style.css?v=3"
 >
 
 
@@ -262,7 +262,7 @@ include __DIR__ . '/../includes/header.php';
 
                 <form
                     method="get"
-                    class="glass-card rounded-4 p-3"
+                    class="glass-card rounded-4 p-3 catalogo-filtro"
                 >
 
                     <div class="row g-2">
@@ -282,30 +282,72 @@ include __DIR__ . '/../includes/header.php';
 
                         <div class="col-md-3">
 
-                            <select
-                                name="categoria"
-                                class="form-select"
-                            >
+                            <?php
+                            $categoriaSelecionada = $categoria !== ''
+                                ? $categoria
+                                : 'Todas';
+                            ?>
 
-                                <option value="">
-                                    Todas
-                                </option>
+                            <div class="categoria-dropdown" data-categoria-dropdown>
 
+                                <input
+                                    type="hidden"
+                                    name="categoria"
+                                    value="<?= e($categoria) ?>"
+                                    data-categoria-value
+                                >
 
-                                <?php foreach ($categorias as $cat): ?>
+                                <button
+                                    type="button"
+                                    class="categoria-dropdown-toggle"
+                                    data-categoria-toggle
+                                    aria-expanded="false"
+                                    aria-haspopup="listbox"
+                                >
+                                    <span data-categoria-label>
+                                        <?= e($categoriaSelecionada) ?>
+                                    </span>
 
-                                    <option
-                                        value="<?= e($cat) ?>"
-                                        <?= $categoria === $cat ? 'selected' : '' ?>
+                                    <span class="dropdown-arrow" aria-hidden="true">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </span>
+                                </button>
+
+                                <div
+                                    class="categoria-dropdown-menu"
+                                    data-categoria-menu
+                                    role="listbox"
+                                >
+
+                                    <button
+                                        type="button"
+                                        class="categoria-dropdown-option <?= $categoria === '' ? 'is-selected' : '' ?>"
+                                        data-categoria-option
+                                        data-value=""
+                                        role="option"
+                                        aria-selected="<?= $categoria === '' ? 'true' : 'false' ?>"
                                     >
+                                        Todas
+                                    </button>
 
-                                        <?= e($cat) ?>
+                                    <?php foreach ($categorias as $cat): ?>
 
-                                    </option>
+                                        <button
+                                            type="button"
+                                            class="categoria-dropdown-option <?= $categoria === $cat ? 'is-selected' : '' ?>"
+                                            data-categoria-option
+                                            data-value="<?= e($cat) ?>"
+                                            role="option"
+                                            aria-selected="<?= $categoria === $cat ? 'true' : 'false' ?>"
+                                        >
+                                            <?= e($cat) ?>
+                                        </button>
 
-                                <?php endforeach; ?>
+                                    <?php endforeach; ?>
 
-                            </select>
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -314,7 +356,7 @@ include __DIR__ . '/../includes/header.php';
 
                             <button
                                 type="submit"
-                                class="btn btn-primary"
+                                class="btn btn-filtrar"
                             >
                                 Filtrar
                             </button>
@@ -486,6 +528,60 @@ include __DIR__ . '/../includes/header.php';
     </div>
 
 </section>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dropdown = document.querySelector('[data-categoria-dropdown]');
+
+    if (!dropdown) return;
+
+    const toggle = dropdown.querySelector('[data-categoria-toggle]');
+    const hiddenInput = dropdown.querySelector('[data-categoria-value]');
+    const label = dropdown.querySelector('[data-categoria-label]');
+    const options = dropdown.querySelectorAll('[data-categoria-option]');
+
+    const closeDropdown = () => {
+        dropdown.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+
+        const isOpen = dropdown.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    options.forEach((option) => {
+        option.addEventListener('click', () => {
+            hiddenInput.value = option.dataset.value || '';
+            label.textContent = option.textContent.trim();
+
+            options.forEach((item) => {
+                const selected = item === option;
+                item.classList.toggle('is-selected', selected);
+                item.setAttribute('aria-selected', selected ? 'true' : 'false');
+            });
+
+            closeDropdown();
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!dropdown.contains(event.target)) {
+            closeDropdown();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeDropdown();
+            toggle.focus();
+        }
+    });
+});
+</script>
 
 
 <?php

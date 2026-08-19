@@ -90,7 +90,7 @@ a { text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); border: 0; color: #06101c; font-weight: 700; box-shadow: 0 12px 28px rgba(0, 166, 156, 0.24); }
 .btn-primary:hover { color: #06101c; filter: brightness(1.03); }
 .btn-outline-light { border-color: rgba(255,255,255,.18); }
-.form-control, .form-select, .input-group-text { background-color: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #fff; }
+.form-control, .form-select, .input-group-text { background-color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.3); color: #ffffff; }
 .form-control::placeholder { color: rgba(234,240,255,0.45); }
 .form-control:focus, .form-select:focus { box-shadow: 0 0 0 .2rem rgba(0, 166, 156, 0.18); border-color: rgba(0, 166, 156, 0.35); background-color: rgba(255,255,255,0.06); color: #fff; }
 
@@ -193,4 +193,244 @@ section { position: relative; }
     width: 100% !important;
     object-fit: cover; /* Faz a imagem preencher o espaço sem distorcer (faz um crop automático) */
     border-radius: 18px;
+}
+
+/* =========================================
+   FILTRO DO CATÁLOGO
+========================================= */
+
+.catalogo-filtro {
+    position: relative;
+    z-index: 1100;
+    overflow: visible; /* impede que o dropdown seja cortado pelo card */
+    background: rgba(10, 22, 36, 0.94);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.catalogo-filtro,
+.catalogo-filtro .row,
+.catalogo-filtro .col-md-3 {
+    position: relative;
+    z-index: 1100;
+}
+
+.catalogo-filtro .form-control {
+    height: 42px;
+    background: #172536;
+    border: 1px solid #2a3c52;
+    color: #f1f5f9;
+    border-radius: 10px;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.catalogo-filtro .form-control::placeholder {
+    color: #8b9bb0;
+}
+
+.catalogo-filtro .form-control:hover {
+    border-color: rgba(0, 199, 187, 0.45);
+}
+
+.catalogo-filtro .form-control:focus {
+    background: #1b2c40;
+    border-color: var(--primary-2);
+    box-shadow: 0 0 0 3px rgba(0, 199, 187, 0.12);
+    color: #fff;
+}
+
+.categoria-dropdown {
+    position: relative;
+    z-index: 1200;
+    width: 100%;
+}
+
+.categoria-dropdown-toggle {
+    width: 100%;
+    height: 43px;
+    padding: 0 .85rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .60rem;
+    background: #172536;
+    border: 1px solid #2a3c52;
+    border-radius: 10px;
+    color: #f1f5f9;
+    font: inherit;
+    font-size: .90rem;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+}
+
+.categoria-dropdown-toggle:hover {
+    background: #1b2c40;
+    border-color: rgba(0, 199, 187, 0.55);
+}
+
+.categoria-dropdown-toggle:focus,
+.categoria-dropdown.is-open .categoria-dropdown-toggle {
+    background: #1b2c40;
+    border-color: var(--primary-2);
+    box-shadow: 0 0 0 3px rgba(0, 199, 187, 0.12);
+    outline: none;
+}
+
+.categoria-dropdown-toggle .dropdown-arrow {
+    flex: 0 0 auto;
+    color: var(--primary-2);
+    font-size: 1rem;
+    transition: transform .2s ease;
+}
+
+.categoria-dropdown.is-open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.categoria-dropdown-menu {
+    position: absolute;
+    z-index: 2000;
+
+    top: calc(100% + 6px);
+    left: 0;
+
+    /*
+     * A largura se adapta ao conteúdo.
+     */
+    width: max-content;
+    min-width: 100%;
+    max-width: 400px;
+
+    padding: .4rem;
+
+    border: 1px solid rgba(0, 199, 187, 0.28);
+    border-radius: 12px;
+
+    background: #101e2e;
+
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.38);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    /*
+     * Scroll somente com a rodinha.
+     * A barra fica escondida.
+     */
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    pointer-events: none;
+
+    transition:
+        opacity .18s ease,
+        transform .18s ease,
+        visibility .18s ease;
+}
+
+
+/* Chrome / Edge / Safari */
+.categoria-dropdown-menu::-webkit-scrollbar {
+    display: none;
+}
+
+
+.categoria-dropdown.is-open .categoria-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+
+/* OPÇÕES */
+.categoria-dropdown-option {
+    display: block;
+
+    width: 100%;
+
+    padding: .62rem .75rem;
+
+    border: 0;
+    border-radius: 8px;
+
+    background: transparent;
+    color: #dce7f7;
+
+    font: inherit;
+    font-size: .92rem;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    /*
+     * Mantém cada categoria em uma única linha.
+     */
+    white-space: nowrap;
+
+    transition:
+        background-color .15s ease,
+        color .15s ease;
+}
+
+.categoria-dropdown-option:hover,
+.categoria-dropdown-option:focus {
+    background: rgba(0, 199, 187, 0.14);
+    color: #ffffff;
+    outline: none;
+}
+
+.categoria-dropdown-option.is-selected {
+    background: linear-gradient(
+        135deg,
+        rgba(0, 166, 156, 0.28),
+        rgba(0, 199, 187, 0.18)
+    );
+    color: #b8fffa;
+    font-weight: 700;
+}
+
+.catalogo-filtro .btn-filtrar {
+    height: 42px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-2));
+    color: #06121f;
+    font-weight: 800;
+    transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+
+.catalogo-filtro .btn-filtrar:hover {
+    color: #06121f;
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(0, 199, 187, 0.22);
+}
+
+.catalogo-filtro .btn-filtrar:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 767.98px) {
+    .catalogo-filtro .form-control,
+    .categoria-dropdown-toggle,
+    .catalogo-filtro .btn-filtrar {
+        height: 46px;
+    }
+
+    .categoria-dropdown-menu {
+        max-height: 240px;
+        overflow-y: auto;
+    }
 }

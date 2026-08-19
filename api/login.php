@@ -2,11 +2,6 @@
 
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/../config/conexao.php';
-require_once __DIR__ . '/../classes/Login.php';
-require_once __DIR__ . '/../models/UsuarioModel.php';
-require_once __DIR__ . '/../controllers/LoginController.php';
-
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
@@ -19,6 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+require_once __DIR__ . '/../config/conexao.php';
+require_once __DIR__ . '/../classes/Login.php';
+require_once __DIR__ . '/../models/UsuarioModel.php';
+require_once __DIR__ . '/../controllers/LoginController.php';
 
 $dados = json_decode(file_get_contents('php://input'), true);
 
