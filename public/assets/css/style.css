@@ -23,9 +23,26 @@ a { text-decoration: none; }
 
 /* ==========================================
    COMPONENTES BASE & NAVEGAÇÃO
+
+   HIERARQUIA DE CAMADAS:
+   3000 = topbar
+   2900 = navegação principal
+   100  = filtro do catálogo
+   150  = dropdown
+   200  = menu do dropdown
+
+   O header sempre fica acima do conteúdo durante o scroll.
 ========================================== */
-.topbar { background: rgba(0, 0, 0, 0.25); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
-.main-nav { background: rgba(6, 13, 24, 0.9); border-bottom: 1px solid var(--border); backdrop-filter: blur(16px); }
+.topbar { position: relative; z-index: 3000; background: rgba(0, 0, 0, 0.25); border-bottom: 1px solid var(--border); backdrop-filter: blur(12px); }
+/* Localize este bloco no seu style.css */
+.main-nav {
+    position: sticky; /* Alterado de relative para sticky */
+    top: 0;           /* Garante que o menu fixe no topo da tela */
+    z-index: 2900;    /* Mantém o menu acima do conteúdo da página (que usa z-index: 10) */
+    background: rgba(6, 13, 24, 0.9);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(16px);
+}
 
 .brand-mark {
     width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
@@ -90,7 +107,7 @@ a { text-decoration: none; }
 .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-2)); border: 0; color: #06101c; font-weight: 700; box-shadow: 0 12px 28px rgba(0, 166, 156, 0.24); }
 .btn-primary:hover { color: #06101c; filter: brightness(1.03); }
 .btn-outline-light { border-color: rgba(255,255,255,.18); }
-.form-control, .form-select, .input-group-text { background-color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.3); color: #ffffff; }
+.form-control, .form-select, .input-group-text { background-color: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #ffffff; }
 .form-control::placeholder { color: rgba(234,240,255,0.45); }
 .form-control:focus, .form-select:focus { box-shadow: 0 0 0 .2rem rgba(0, 166, 156, 0.18); border-color: rgba(0, 166, 156, 0.35); background-color: rgba(255,255,255,0.06); color: #fff; }
 
@@ -101,14 +118,72 @@ a { text-decoration: none; }
 /* ==========================================
    FOOTER E TIMELINE
 ========================================== */
-.footer { background: #04090f; border-top: 1px solid var(--border); }
-.footer-links a { color: rgba(234, 240, 255, 0.66); }
-.footer-links a:hover { color: #fff; }
 
-.timeline { position: relative; padding-left: 1.5rem; border-left: 2px solid rgba(255,255,255,0.12); margin-top: 20px; }
-.timeline .step { position: relative; padding-bottom: 1.25rem; }
-.timeline .step::before { content: ''; position: absolute; left: -1.65rem; top: .25rem; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-2)); box-shadow: 0 0 0 4px rgba(0, 166, 156, 0.12); }
+.footer {
+    background: #04090f;
+    border-top: 1px solid var(--border);
+}
 
+.footer-links a {
+    color: rgba(234, 240, 255, 0.66);
+}
+
+.footer-links a:hover {
+    color: #fff;
+}
+
+
+/* ==========================================
+   TIMELINE - DIFERENCIAIS DA EMPRESA
+========================================== */
+
+.timeline {
+    position: relative;
+    padding-left: 5rem;
+    margin-top: 20px;
+}
+
+/* LINHA VERTICAL */
+.timeline::before {
+    content: "";
+    position: absolute;
+
+    left: 30px;
+    top: 0;
+    bottom: 0;
+
+    width: 2px;
+
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* CADA ITEM */
+.timeline .step {
+    position: relative;
+    padding-bottom: 1.25rem;
+}
+
+/* BOLINHA */
+.timeline .step::before {
+    content: "";
+    position: absolute;
+
+    left: -56px;
+    top: 6px;
+
+    width: 14px;
+    height: 14px;
+
+    border-radius: 50%;
+
+    background: linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-2)
+    );
+
+    box-shadow: 0 0 0 4px rgba(0, 166, 156, 0.12);
+}
 /* ==========================================
    PADRONIZAÇÃO GERAL
 ========================================== */
@@ -201,105 +276,114 @@ section { position: relative; }
 
 .catalogo-filtro {
     position: relative;
-    z-index: 1100;
-    overflow: visible; /* impede que o dropdown seja cortado pelo card */
-    background: rgba(10, 22, 36, 0.94);
+    z-index: 10;
+
+    overflow: visible;
+
+    background: rgba(10, 22, 36, 0.97);
+
     border: 1px solid rgba(255, 255, 255, 0.10);
+
     box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
 }
 
-.catalogo-filtro,
-.catalogo-filtro .row,
-.catalogo-filtro .col-md-3 {
-    position: relative;
-    z-index: 1100;
-}
 
 .catalogo-filtro .form-control {
     height: 42px;
+
     background: #172536;
+
     border: 1px solid #2a3c52;
+
     color: #f1f5f9;
+
     border-radius: 10px;
-    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background-color .2s ease;
 }
+
 
 .catalogo-filtro .form-control::placeholder {
     color: #8b9bb0;
 }
 
+
 .catalogo-filtro .form-control:hover {
     border-color: rgba(0, 199, 187, 0.45);
 }
 
+
 .catalogo-filtro .form-control:focus {
     background: #1b2c40;
+
     border-color: var(--primary-2);
+
     box-shadow: 0 0 0 3px rgba(0, 199, 187, 0.12);
+
     color: #fff;
 }
 
+
+/* =========================================
+   DROPDOWN
+========================================= */
+
 .categoria-dropdown {
     position: relative;
-    z-index: 1200;
+    z-index: 20;
+
     width: 100%;
 }
+
 
 .categoria-dropdown-toggle {
     width: 100%;
     height: 43px;
+
     padding: 0 .85rem;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     gap: .60rem;
+
     background: #172536;
+
     border: 1px solid #2a3c52;
+
     border-radius: 10px;
+
     color: #f1f5f9;
+
     font: inherit;
     font-size: .90rem;
+
     text-align: left;
+
     cursor: pointer;
-    transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+
+    transition:
+        border-color .2s ease,
+        background-color .2s ease,
+        box-shadow .2s ease;
 }
 
-.categoria-dropdown-toggle:hover {
-    background: #1b2c40;
-    border-color: rgba(0, 199, 187, 0.55);
-}
-
-.categoria-dropdown-toggle:focus,
-.categoria-dropdown.is-open .categoria-dropdown-toggle {
-    background: #1b2c40;
-    border-color: var(--primary-2);
-    box-shadow: 0 0 0 3px rgba(0, 199, 187, 0.12);
-    outline: none;
-}
-
-.categoria-dropdown-toggle .dropdown-arrow {
-    flex: 0 0 auto;
-    color: var(--primary-2);
-    font-size: 1rem;
-    transition: transform .2s ease;
-}
-
-.categoria-dropdown.is-open .dropdown-arrow {
-    transform: rotate(180deg);
-}
 
 .categoria-dropdown-menu {
     position: absolute;
-    z-index: 2000;
+
+    z-index: 30;
 
     top: calc(100% + 6px);
     left: 0;
 
-    /*
-     * A largura se adapta ao conteúdo.
-     */
     width: max-content;
     min-width: 100%;
     max-width: 400px;
@@ -307,6 +391,7 @@ section { position: relative; }
     padding: .4rem;
 
     border: 1px solid rgba(0, 199, 187, 0.28);
+
     border-radius: 12px;
 
     background: #101e2e;
@@ -316,11 +401,8 @@ section { position: relative; }
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
 
-    /*
-     * Scroll somente com a rodinha.
-     * A barra fica escondida.
-     */
     max-height: 280px;
+
     overflow-y: auto;
     overflow-x: hidden;
 
@@ -329,7 +411,9 @@ section { position: relative; }
 
     opacity: 0;
     visibility: hidden;
+
     transform: translateY(-6px);
+
     pointer-events: none;
 
     transition:
@@ -339,7 +423,6 @@ section { position: relative; }
 }
 
 
-/* Chrome / Edge / Safari */
 .categoria-dropdown-menu::-webkit-scrollbar {
     display: none;
 }
@@ -348,7 +431,9 @@ section { position: relative; }
 .categoria-dropdown.is-open .categoria-dropdown-menu {
     opacity: 1;
     visibility: visible;
+
     transform: translateY(0);
+
     pointer-events: auto;
 }
 

@@ -231,12 +231,7 @@ include __DIR__ . '/../includes/header.php';
 
 ?>
 
-
-<link
-    rel="stylesheet"
-    href="assets/css/style.css?v=3"
->
-
+<link rel="stylesheet" href="public/assets/css/style.css?v=3">
 
 <section class="py-5">
 

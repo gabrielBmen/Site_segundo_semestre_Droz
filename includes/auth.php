@@ -14,6 +14,11 @@ function usuarioAtual(): ?array
     return $_SESSION['usuario'] ?? null;
 }
 
+function usuarioAdmin(): bool
+{
+    return usuarioLogado() && ($_SESSION['usuario']['tipo'] ?? '') === 'admin';
+}
+
 function urlInternaValida(string $url): bool
 {
     return $url !== ''
@@ -39,8 +44,25 @@ function exigirLogin(string $urlDepois = ''): void
 
 function exigirAdmin(): void
 {
-    if (!usuarioLogado() || ($_SESSION['usuario']['tipo'] ?? '') !== 'admin') {
-        http_response_code(403);
-        exit('Acesso negado.');
+    if (usuarioAdmin()) {
+        return;
     }
+
+    http_response_code(403);
+    exit('Acesso negado. Área exclusiva para administradores.');
+}
+
+function exigirAdminJson(): void
+{
+    if (usuarioAdmin()) {
+        return;
+    }
+
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'sucesso' => false,
+        'mensagem' => 'Acesso negado. Área exclusiva para administradores.',
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }

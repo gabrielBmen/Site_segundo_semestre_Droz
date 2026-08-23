@@ -1,7 +1,7 @@
 "use strict";
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('formLogin');
-    const mensagem = document.getElementById('mensagemLogin');
+    const form = document.getElementById('formAdminLogin');
+    const mensagem = document.getElementById('mensagemAdminLogin');
     if (!form || !mensagem || !window.drozApi)
         return;
     const mostrarMensagem = (texto, tipo = 'danger') => {
@@ -10,26 +10,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const email = document.getElementById('email').value.trim();
-        const senha = document.getElementById('senha').value;
-        const redirect = document.getElementById('redirect').value;
+        const email = document.getElementById('adminEmail').value.trim();
+        const senha = document.getElementById('adminSenha').value;
         try {
-            const resultado = await window.drozApi.postJson('/api/login.php', {
+            const resultado = await window.drozApi.postJson('/api/admin-login.php', {
                 email,
-                senha,
-                redirect
+                senha
             });
             if (!resultado.sucesso) {
-                mostrarMensagem(resultado.mensagem ?? 'Não foi possível realizar o login.');
+                mostrarMensagem(resultado.mensagem ?? 'Login administrativo inválido.');
                 return;
             }
             mostrarMensagem(resultado.mensagem ?? 'Login realizado com sucesso.', 'success');
-            window.location.href = String(resultado.redirect ?? 'index.php');
+            window.location.href = String(resultado.redirect ?? '/admin/');
         }
         catch (erro) {
-            console.error('Erro no login:', erro);
+            console.error('Erro no login administrativo:', erro);
             mostrarMensagem(erro instanceof Error ? erro.message : 'Não foi possível concluir o login.');
         }
     });
 });
-//# sourceMappingURL=login.js.map
+//# sourceMappingURL=admin-login.js.map

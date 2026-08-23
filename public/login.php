@@ -55,9 +55,13 @@ include __DIR__ . '/../includes/header.php';
                         </button>
                     </form>
 
-                    <p class="text-center text-white-50 mt-4 mb-0">
+                    <p class="text-center text-white-50 mt-4 mb-2">
                         Ainda não possui conta?
                         <a href="cadastro.php" class="text-white fw-semibold">Criar conta</a>
+                    </p>
+
+                    <p class="text-center mb-0">
+                        <a href="/admin/login.php" class="small text-white-50">Acesso administrativo</a>
                     </p>
                 </div>
             </div>
@@ -65,6 +69,7 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </section>
 
-<script src="assets/js/login.js?v=2"></script>
+<script src="assets/js/api.js?v=1"></script>
+<script src="assets/js/login.js?v=3"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

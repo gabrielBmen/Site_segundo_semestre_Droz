@@ -26,7 +26,7 @@ require_once __DIR__ . '/auth.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="/assets/css/style.css?v=3">
+    <link rel="stylesheet" href="public/assets/css/style.css?v=3">
 </head>
 <body>
 <header class="topbar">
@@ -58,6 +58,9 @@ require_once __DIR__ . '/auth.php';
                 <a href="produtos.php" class="btn btn-outline-light btn-sm">Catálogo</a>
                 <a href="contato.php" class="btn btn-primary btn-sm">Solicitar orçamento</a>
                 <?php if (usuarioLogado()): ?>
+                    <?php if (usuarioAdmin()): ?>
+                        <a href="/admin/" class="btn btn-outline-light btn-sm">Dashboard</a>
+                    <?php endif; ?>
                     <a href="logout.php" class="btn btn-outline-light btn-sm">Sair</a>
                 <?php else: ?>
                     <a href="login.php" class="btn btn-outline-light btn-sm">Entrar</a>

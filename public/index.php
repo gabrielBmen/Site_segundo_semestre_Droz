@@ -6,7 +6,7 @@ $paginaAtiva = 'home';
 
 require_once __DIR__ . '/../includes/funcoes.php';
 require_once __DIR__ . '/../config/conexao.php';
-
+require_once __DIR__ . '/../includes/auth.php';
 
 // =========================================================
 // BUSCAR PRODUTOS DO BANCO
@@ -144,7 +144,7 @@ include __DIR__ . '/../includes/header.php';
 
 ?>
 
-<link rel="stylesheet" href="assets/css/style.css?v=2">
+<link rel="stylesheet" href="assets/css/style.css?v=3">
 
 
 <!-- =========================================================
@@ -598,19 +598,35 @@ include __DIR__ . '/../includes/header.php';
 
                             <div class="d-flex justify-content-between align-items-center">
 
-                                <div class="price">
+                                <div clasice">
 
-                                    <?= moeda($produto['preco']) ?>
+                                    <?php if (usuarioLogado()): ?>
 
-                                </div>
+                                        <div class="price">
+                                            <?= moeda($produto['preco']) ?>
+                                        </div>
 
+                                        <small class="text-white-50">
+                                            Estoque: <?= (int) $produto['estoque'] ?>
+                                        </small>
 
-                                <a
-                                    href="produtos.php#<?= e($produto['slug']) ?>"
-                                    class="btn btn-primary btn-sm">
+                                    <?php else: ?>
 
-                                    Detalhes
+                                        <div class="price">
+                                            <i class="bi bi-lock-fill me-1"></i>
+                                            Preço protegido
+                                        </div>
 
+                                        <small class="text-white-50">
+                                            Faça login para ver preço e detalhes.
+                                        </small>
+
+                                    <?php endif; ?>
+                            </div>
+
+                                <a href="produto.php?slug=<?= rawurlencode($produto['slug']) ?>"
+                                    class="btn btn-primary text-nowrap">
+                                    <?= usuarioLogado() ? 'Ver detalhes' : 'Entrar para ver' ?>
                                 </a>
 
                             </div>
@@ -783,10 +799,24 @@ include __DIR__ . '/../includes/header.php';
 
                             <p class="display-6 fw-bold mb-2">
 
+                                <?php if (usuarioLogado()): ?>
+
+                            <div class="price">
                                 <?= moeda($descontoExemplo) ?>
+                            </div>
 
+                            <?php else: ?>
+
+                                <div class="price">
+                                    <i class="bi bi-lock-fill me-1"></i>
+                                    Preço protegido
+                                </div>
+
+                                <small class="text-white-50">
+                                    Faça login para visualizar a precificação.
+                                </small>
+                            <?php endif; ?>
                             </p>
-
 
                             <span class="text-white-50">
                                 Cálculo automático de desconto comercial
@@ -809,6 +839,5 @@ include __DIR__ . '/../includes/header.php';
     </div>
 
 </section>
-
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
