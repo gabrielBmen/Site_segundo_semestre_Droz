@@ -8,15 +8,18 @@ type ApiResult<T> = {
 type ApiClient = {
     getJson<T>(url: string): Promise<ApiResult<T>>;
     postJson<T>(url: string, payload: unknown): Promise<ApiResult<T>>;
+    postFormData<T>(url: string, formData: FormData): Promise<ApiResult<T>>;
 };
 
 const parseResponse = async <T>(response: Response): Promise<ApiResult<T>> => {
     const contentType = response.headers.get('content-type') ?? '';
+
     if (!contentType.includes('application/json')) {
         throw new Error(`Resposta inválida do servidor (HTTP ${response.status}).`);
     }
 
     const data = await response.json() as ApiResult<T>;
+
     if (!response.ok) {
         throw new Error(data.mensagem ?? `Erro HTTP ${response.status}.`);
     }
@@ -27,20 +30,38 @@ const parseResponse = async <T>(response: Response): Promise<ApiResult<T>> => {
 const api: ApiClient = {
     async getJson<T>(url: string): Promise<ApiResult<T>> {
         const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',
             headers: { Accept: 'application/json' }
         });
+
         return parseResponse<T>(response);
     },
 
     async postJson<T>(url: string, payload: unknown): Promise<ApiResult<T>> {
         const response = await fetch(url, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
             },
             body: JSON.stringify(payload)
         });
+
+        return parseResponse<T>(response);
+    },
+
+    async postFormData<T>(url: string, formData: FormData): Promise<ApiResult<T>> {
+        const response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json'
+            },
+            body: formData
+        });
+
         return parseResponse<T>(response);
     }
 };

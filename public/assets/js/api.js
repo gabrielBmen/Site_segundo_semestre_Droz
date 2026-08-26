@@ -13,6 +13,8 @@ const parseResponse = async (response) => {
 const api = {
     async getJson(url) {
         const response = await fetch(url, {
+            method: 'GET',
+            credentials: 'same-origin',
             headers: { Accept: 'application/json' }
         });
         return parseResponse(response);
@@ -20,11 +22,23 @@ const api = {
     async postJson(url, payload) {
         const response = await fetch(url, {
             method: 'POST',
+            credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json'
             },
             body: JSON.stringify(payload)
+        });
+        return parseResponse(response);
+    },
+    async postFormData(url, formData) {
+        const response = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json'
+            },
+            body: formData
         });
         return parseResponse(response);
     }

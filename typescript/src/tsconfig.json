@@ -7,7 +7,7 @@
       "DOM"
     ],
     "rootDir": "./src",
-    "outDir": "../public/assets/js",
+    "outDir": "/../public/assets/js",
     "strict": true,
     "sourceMap": true,
     "declaration": false,

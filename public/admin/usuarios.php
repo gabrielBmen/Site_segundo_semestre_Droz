@@ -2,7 +2,7 @@
 $adminPagina = 'Usuários';
 include __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../../config/conexao.php';
-$stmt = $pdo->query("SELECT id_usuario, nome, email, tipo, ativo, data_criacao FROM usuarios ORDER BY id_usuario DESC");
+$stmt = $pdo->query("SELECT id_usuario, nome, email, tipo, ativo, data_criacao FROM usuarios ORDER BY id_usuario ASC");
 $usuarios = $stmt->fetchAll();
 ?>
 <div class="dashboard-card"><div class="table-responsive"><table class="table table-dark align-middle mb-0"><thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Tipo</th><th>Status</th><th>Criado em</th></tr></thead><tbody>

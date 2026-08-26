@@ -2,7 +2,7 @@
 $adminPagina = 'Categorias';
 include __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../../config/conexao.php';
-$stmt = $pdo->query("SELECT id_categoria, nome, ativo FROM categorias ORDER BY nome");
+$stmt = $pdo->query("SELECT id_categoria, nome, ativo FROM categorias ORDER BY id_categoria ASC");
 $categorias = $stmt->fetchAll();
 ?>
 <div class="dashboard-card"><div class="table-responsive"><table class="table table-dark align-middle mb-0"><thead><tr><th>ID</th><th>Categoria</th><th>Status</th></tr></thead><tbody>

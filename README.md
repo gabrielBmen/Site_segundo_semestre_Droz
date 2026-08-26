@@ -21,3 +21,5 @@
 ## Autenticação
 
 O módulo de login está documentado em `README_LOGIN.md`. O visitante permanece livre para navegar, enquanto preços, detalhes completos das máquinas e contato exigem sessão.
+
+![alt text](image.png)
