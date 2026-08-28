@@ -49,10 +49,18 @@ require_once __DIR__ . '/auth.php';
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="menuPrincipal">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'home' ? 'active' : '' ?>" href="index.php">Home</a></li>
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'sobre' ? 'active' : '' ?>" href="sobre.php">Sobre</a></li>
-                <li class="nav-item"><a class="nav-link <?= $paginaAtiva === 'servicos' ? 'active' : '' ?>" href="servicos.php">Serviços</a></li>
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+                <li class="nav-item">
+                    <a class="btn btn-outline-light btn-sm" href="index.php">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="btn btn-outline-light btn-sm" href="sobre.php">Sobre</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="btn btn-outline-light btn-sm" href="servicos.php">Serviços</a>
+                </li>
             </ul>
             <div class="ms-lg-3 d-flex gap-2 mt-3 mt-lg-0">
                 <a href="produtos.php" class="btn btn-outline-light btn-sm">Catálogo</a>

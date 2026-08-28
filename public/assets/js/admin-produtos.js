@@ -325,3 +325,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             : 'Não foi possível iniciar o gerenciamento de produtos.', 'danger');
     }
 });
+//# sourceMappingURL=admin-produtos.js.map

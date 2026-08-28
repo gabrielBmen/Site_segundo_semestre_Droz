@@ -144,7 +144,7 @@ include __DIR__ . '/../includes/header.php';
 
 ?>
 
-<link rel="stylesheet" href="assets/css/style.css?v=3">
+<link rel="stylesheet" href="assets/css/style.css?v=4">
 
 
 <!-- =========================================================
@@ -155,12 +155,10 @@ include __DIR__ . '/../includes/header.php';
 
     <div class="container position-relative">
 
-        <div class="row g-4 align-items-stretch">
-
-
+        <div class="row g-4 align-items-stretch hero-row">
             <!-- TEXTO -->
             <div class="col-lg-6">
-
+                
                 <span class="badge-soft mb-3">
                     <i class="bi bi-gear-fill"></i>
                     Robótica industrial com engenharia própria
@@ -259,9 +257,8 @@ include __DIR__ . '/../includes/header.php';
 
 
             <!-- CARROSSEL -->
-            <div class="col-lg-6">
-
-                <div class="hero-card">
+                <div class="col-lg-6 hero-image-column">
+                    <div class="hero-card">
 
                     <div id="carrosselHero"
                          class="carousel slide"

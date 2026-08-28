@@ -64,6 +64,7 @@ a { text-decoration: none; }
 .hero-title { font-size: clamp(2.3rem, 4vw, 4.2rem); font-weight: 800; line-height: 1.02; letter-spacing: -0.04em; }
 .hero-title span { background: linear-gradient(135deg, var(--primary), var(--primary-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .hero-text { color: #bfd0eb; font-size: 1.05rem; line-height: 1.8; }
+/* Alinha o card da imagem com os cards de estatísticas */
 
 /* ==========================================
    CARDS & ELEMENTOS VISUAIS
@@ -517,5 +518,46 @@ section { position: relative; }
     .categoria-dropdown-menu {
         max-height: 240px;
         overflow-y: auto;
+    }
+}
+
+@media (min-width: 992px) {
+    .hero-row > .hero-image-column {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-row > .hero-image-column > .hero-card {
+        width: 100%;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-row > .hero-image-column #carrosselHero {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hero-row > .hero-image-column .carousel-inner {
+        flex: 1;
+        height: 100%;
+    }
+
+    .hero-row > .hero-image-column .carousel-item,
+    .hero-row > .hero-image-column .carousel-item.active {
+        height: 100%;
+    }
+
+    .hero-row > .hero-image-column .img-carrossel {
+        width: 100%;
+        height: 100% !important;
+        object-fit: cover;
+    }
+
+    .hero-row > .hero-image-column > .hero-card > .row {
+        margin-top: auto !important;
     }
 }
