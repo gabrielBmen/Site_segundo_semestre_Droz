@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../includes/csrf.php';
 $adminPagina = 'Produtos';
 include __DIR__ . '/includes/header.php';
 ?>
@@ -47,12 +48,13 @@ include __DIR__ . '/includes/header.php';
                     <th>Categoria</th>
                     <th>Preço</th>
                     <th>Estoque</th>
+                    <th>Canal</th>
                     <th>Status</th>
                     <th class="text-end">Ações</th>
                 </tr>
             </thead>
             <tbody id="produtosTableBody">
-                <tr><td colspan="8" class="text-white-50">Carregando produtos...</td></tr>
+                <tr><td colspan="9" class="text-white-50">Carregando produtos...</td></tr>
             </tbody>
         </table>
     </div>
@@ -73,6 +75,7 @@ include __DIR__ . '/includes/header.php';
                 <div class="modal-body">
                     <input type="hidden" name="id_produto" id="produtoId">
                     <input type="hidden" name="acao" value="salvar">
+                    <input type="hidden" name="csrf_token" id="produtoCsrfToken" value="<?= e(csrfToken()) ?>">
 
                     <div class="row g-3">
                         <div class="col-lg-8">
@@ -97,10 +100,15 @@ include __DIR__ . '/includes/header.php';
                             <input type="number" min="0" step="1" class="form-control bg-dark text-white border-secondary" id="produtoEstoque" name="estoque" value="0" required>
                         </div>
 
-                        <div class="col-md-4 d-flex align-items-end">
-                            <div class="form-check form-switch mb-2">
+                        <div class="col-md-4 d-flex flex-column justify-content-end gap-2">
+                            <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="produtoAtivo" name="ativo" value="1" checked>
                                 <label class="form-check-label" for="produtoAtivo">Produto ativo no catálogo</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="produtoPermitePedido" name="permite_pedido" value="1">
+                                <label class="form-check-label" for="produtoPermitePedido">Disponível para pedido online</label>
+                                <div class="form-text text-white-50">Máquinas e serviços devem ficar desmarcados para receberem orçamento.</div>
                             </div>
                         </div>
 
@@ -140,6 +148,6 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <script src="/assets/js/api.js?v=2"></script>
-<script src="/assets/js/admin-produtos.js?v=1"></script>
+<script src="/assets/js/admin-produtos.js?v=3"></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

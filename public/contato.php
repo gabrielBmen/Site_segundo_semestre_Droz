@@ -3,10 +3,16 @@
 require_once __DIR__ . '/../includes/funcoes.php';
 require_once __DIR__ . '/../config/conexao.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 
 $urlAtual = 'contato.php';
 exigirLogin($urlAtual);
+
+if (usuarioAdmin()) {
+    header('Location: /admin/orcamentos.php');
+    exit;
+}
 
 $tituloPagina = 'Contato';
 $descricaoPagina = 'Fale com a DROZ Robótica e solicite orçamento para automação industrial e robótica.';
@@ -21,13 +27,34 @@ if (!$cliente) {
     exit('Cadastro de cliente não encontrado.');
 }
 
+$produtosOrcamento = $pdo->query(
+    'SELECT p.id_produto, p.nome, p.permite_pedido, c.nome AS categoria
+     FROM produtos p
+     INNER JOIN categorias c ON c.id_categoria = p.id_categoria
+     WHERE p.ativo = TRUE
+     ORDER BY c.nome ASC, p.nome ASC'
+)->fetchAll();
+
 $mensagemEnviada = false;
 $erro = '';
 
 $nome = $cliente['nome'];
 $email = $cliente['email'];
 $telefone = $cliente['telefone'] ?? '';
-$interesse = '';
+$idProduto = (int) ($_GET['produto_id'] ?? 0);
+$produtoSolicitado = null;
+
+if ($idProduto > 0) {
+    $stmtProduto = $pdo->prepare(
+        'SELECT id_produto, nome FROM produtos
+         WHERE id_produto = :id_produto AND ativo = TRUE LIMIT 1'
+    );
+    $stmtProduto->execute([':id_produto' => $idProduto]);
+    $produtoSolicitado = $stmtProduto->fetch();
+    $idProduto = $produtoSolicitado ? (int) $produtoSolicitado['id_produto'] : 0;
+}
+
+$interesse = $produtoSolicitado['nome'] ?? '';
 $mensagem = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -36,12 +63,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $telefone = trim($_POST['telefone'] ?? '');
     $interesse = trim($_POST['interesse'] ?? '');
     $mensagem = trim($_POST['mensagem'] ?? '');
+    $idProduto = (int) ($_POST['id_produto'] ?? 0);
 
-    if ($nome !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) && $mensagem !== '') {
-        try {
+    if (!csrfValido($_POST['csrf_token'] ?? null)) {
+        $erro = 'Sua sessão expirou. Atualize a página e tente novamente.';
+    } elseif ($idProduto > 0) {
+        $stmtProduto = $pdo->prepare(
+            'SELECT id_produto, nome FROM produtos
+             WHERE id_produto = :id_produto AND ativo = TRUE LIMIT 1'
+        );
+        $stmtProduto->execute([':id_produto' => $idProduto]);
+        $produtoSolicitado = $stmtProduto->fetch();
+
+        if (!$produtoSolicitado) {
+            $erro = 'O produto informado não está mais disponível para orçamento.';
+            $idProduto = 0;
+        }
+    }
+
+    if ($erro === '') {
+        if ($nome === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $mensagem === '') {
+            $erro = 'Preencha nome, e-mail e mensagem corretamente.';
+        } else {
+            try {
             $sql = "
                 INSERT INTO contatos (
                     id_cliente,
+                    id_produto,
                     nome,
                     email,
                     telefone,
@@ -49,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     mensagem
                 ) VALUES (
                     :id_cliente,
+                    :id_produto,
                     :nome,
                     :email,
                     :telefone,
@@ -60,6 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':id_cliente' => $cliente['id_cliente'],
+                ':id_produto' => $idProduto > 0 ? $idProduto : null,
                 ':nome' => $nome,
                 ':email' => $email,
                 ':telefone' => $telefone !== '' ? $telefone : null,
@@ -67,14 +117,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':mensagem' => $mensagem,
             ]);
 
-            $mensagemEnviada = true;
-            $interesse = '';
-            $mensagem = '';
-        } catch (PDOException $e) {
-            $erro = 'Não foi possível salvar sua solicitação.';
+                $mensagemEnviada = true;
+                $idProduto = 0;
+                $produtoSolicitado = null;
+                $interesse = '';
+                $mensagem = '';
+            } catch (PDOException $e) {
+                $erro = 'Não foi possível salvar sua solicitação.';
+            }
         }
-    } else {
-        $erro = 'Preencha nome, e-mail e mensagem corretamente.';
     }
 }
 
@@ -130,6 +181,7 @@ include __DIR__ . '/../includes/header.php';
                             <?php endif; ?>
 
                             <form method="POST" class="contact-form">
+                                <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
                                 <div class="mb-3">
                                     <label class="form-label">Nome</label>
                                     <input type="text" name="nome" class="form-control" value="<?= e($nome) ?>" required>
@@ -146,8 +198,55 @@ include __DIR__ . '/../includes/header.php';
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label">Interesse</label>
-                                    <input type="text" name="interesse" class="form-control" value="<?= e($interesse) ?>" placeholder="Ex.: CSR1, automação, treinamento...">
+                                    <label for="produtoInteresse" class="form-label">Produto de interesse</label>
+                                    <div class="categoria-dropdown" data-produto-dropdown>
+                                        <input type="hidden" name="id_produto" value="<?= $idProduto > 0 ? (int) $idProduto : '' ?>" data-produto-value>
+                                        <button
+                                            id="produtoInteresse"
+                                            type="button"
+                                            class="categoria-dropdown-toggle"
+                                            data-produto-toggle
+                                            aria-expanded="false"
+                                            aria-haspopup="listbox"
+                                        >
+                                            <span data-produto-label><?= e($produtoSolicitado['nome'] ?? 'Assunto geral / ainda não sei o produto') ?></span>
+                                            <span class="dropdown-arrow" aria-hidden="true"><i class="bi bi-chevron-down"></i></span>
+                                        </button>
+                                        <div class="categoria-dropdown-menu" data-produto-menu role="listbox">
+                                            <button
+                                                type="button"
+                                                class="categoria-dropdown-option <?= $idProduto === 0 ? 'is-selected' : '' ?>"
+                                                data-produto-option
+                                                data-value=""
+                                                data-label="Assunto geral / ainda não sei o produto"
+                                                role="option"
+                                                aria-selected="<?= $idProduto === 0 ? 'true' : 'false' ?>"
+                                            >
+                                                Assunto geral / ainda não sei o produto
+                                            </button>
+                                            <?php foreach ($produtosOrcamento as $produtoOpcao): ?>
+                                                <?php $produtoOpcaoId = (int) $produtoOpcao['id_produto']; ?>
+                                                <button
+                                                    type="button"
+                                                    class="categoria-dropdown-option <?= $produtoOpcaoId === $idProduto ? 'is-selected' : '' ?>"
+                                                    data-produto-option
+                                                    data-value="<?= $produtoOpcaoId ?>"
+                                                    data-label="<?= e($produtoOpcao['nome']) ?>"
+                                                    role="option"
+                                                    aria-selected="<?= $produtoOpcaoId === $idProduto ? 'true' : 'false' ?>"
+                                                    title="<?= e($produtoOpcao['nome'] . ' — ' . $produtoOpcao['categoria']) ?>"
+                                                >
+                                                    <?= e($produtoOpcao['nome']) ?> — <?= e($produtoOpcao['categoria']) ?>
+                                                </button>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div class="form-text text-white-50">Ao selecionar um item, ele aparecerá identificado na área administrativa.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Interesse ou aplicação</label>
+                                    <input type="text" name="interesse" class="form-control" value="<?= e($interesse) ?>" placeholder="Ex.: soldagem, automação, treinamento...">
                                 </div>
 
                                 <div class="mb-4">
@@ -166,5 +265,55 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dropdown = document.querySelector('[data-produto-dropdown]');
+    if (!dropdown) return;
+
+    const toggle = dropdown.querySelector('[data-produto-toggle]');
+    const hiddenInput = dropdown.querySelector('[data-produto-value]');
+    const label = dropdown.querySelector('[data-produto-label]');
+    const options = dropdown.querySelectorAll('[data-produto-option]');
+    if (!toggle || !hiddenInput || !label || options.length === 0) return;
+
+    const closeDropdown = () => {
+        dropdown.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+    };
+
+    toggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        const isOpen = dropdown.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    options.forEach((option) => {
+        option.addEventListener('click', () => {
+            hiddenInput.value = option.dataset.value || '';
+            label.textContent = option.dataset.label || option.textContent.trim();
+
+            options.forEach((item) => {
+                const selected = item === option;
+                item.classList.toggle('is-selected', selected);
+                item.setAttribute('aria-selected', selected ? 'true' : 'false');
+            });
+
+            closeDropdown();
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        if (event.target instanceof Node && !dropdown.contains(event.target)) closeDropdown();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeDropdown();
+            toggle.focus();
+        }
+    });
+});
+</script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

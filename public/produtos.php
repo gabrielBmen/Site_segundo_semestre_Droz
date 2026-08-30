@@ -35,6 +35,7 @@ $sql = "
         p.descricao,
         p.preco,
         p.estoque,
+        p.permite_pedido,
         p.ativo,
 
         c.nome AS categoria,
@@ -231,7 +232,7 @@ include __DIR__ . '/../includes/header.php';
 
 ?>
 
-<link rel="stylesheet" href="public/assets/css/style.css?v=3">
+<link rel="stylesheet" href="/assets/css/style.css?v=4">
 
 <section class="py-5">
 
@@ -402,6 +403,12 @@ include __DIR__ . '/../includes/header.php';
                                 <?= e($produto['categoria']) ?>
                             </span>
 
+                            <?php if ((bool) $produto['permite_pedido']): ?>
+                                <span class="badge badge-soft mb-2">Pedido online</span>
+                            <?php else: ?>
+                                <span class="badge text-bg-secondary mb-2">Sob orçamento</span>
+                            <?php endif; ?>
+
 
                             <h5 class="fw-bold">
                                 <?= e($produto['nome']) ?>
@@ -433,9 +440,19 @@ include __DIR__ . '/../includes/header.php';
                                     <?php endif; ?>
                                 </div>
 
-                                <a href="produto.php?slug=<?= rawurlencode($produto['slug']) ?>" class="btn btn-primary text-nowrap">
-                                    <?= usuarioLogado() ? 'Ver detalhes' : 'Entrar para ver' ?>
-                                </a>
+                                <?php if ($adminLogado): ?>
+                                    <a href="produto.php?slug=<?= rawurlencode($produto['slug']) ?>" class="btn btn-outline-light text-nowrap">
+                                        Ver detalhes
+                                    </a>
+                                <?php elseif (usuarioLogado() && !(bool) $produto['permite_pedido']): ?>
+                                    <a href="contato.php?produto_id=<?= (int) $produto['id_produto'] ?>" class="btn btn-primary text-nowrap">
+                                        Solicitar orçamento
+                                    </a>
+                                <?php else: ?>
+                                    <a href="produto.php?slug=<?= rawurlencode($produto['slug']) ?>" class="btn btn-primary text-nowrap">
+                                        <?= usuarioLogado() ? 'Ver detalhes' : 'Entrar para ver' ?>
+                                    </a>
+                                <?php endif; ?>
 
                             </div>
 

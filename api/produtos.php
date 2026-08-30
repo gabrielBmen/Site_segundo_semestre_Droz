@@ -4,6 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/conexao.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../models/ProdutoModel.php';
 require_once __DIR__ . '/../controllers/ProdutoController.php';
 
@@ -18,9 +19,16 @@ try {
         $acao = $_GET['acao'] ?? 'listar';
 
         if ($acao === 'categorias') {
+            $categorias = array_map(static function (array $categoria): array {
+                return [
+                    'id_categoria' => (int) $categoria['id_categoria'],
+                    'nome' => (string) $categoria['nome'],
+                    'ativo' => (bool) $categoria['ativo'],
+                ];
+            }, $produtoModel->listarCategorias());
             echo json_encode([
                 'sucesso' => true,
-                'dados' => $produtoModel->listarCategorias(),
+                'dados' => $categorias,
             ], JSON_UNESCAPED_UNICODE);
             exit;
         }
@@ -45,6 +53,15 @@ try {
         echo json_encode([
             'sucesso' => false,
             'mensagem' => 'Método não permitido.',
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    if (!csrfValido($_POST['csrf_token'] ?? null)) {
+        http_response_code(419);
+        echo json_encode([
+            'sucesso' => false,
+            'mensagem' => 'Sua sessão expirou. Atualize a página e tente novamente.',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -132,10 +149,16 @@ try {
     unset($resultado['status']);
     http_response_code($status);
     echo json_encode($resultado, JSON_UNESCAPED_UNICODE);
+} catch (RuntimeException $e) {
+    http_response_code(422);
+    echo json_encode([
+        'sucesso' => false,
+        'mensagem' => $e->getMessage(),
+    ], JSON_UNESCAPED_UNICODE);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode([
         'sucesso' => false,
-        'mensagem' => $e->getMessage(),
+        'mensagem' => 'Não foi possível concluir a operação com o produto.',
     ], JSON_UNESCAPED_UNICODE);
 }

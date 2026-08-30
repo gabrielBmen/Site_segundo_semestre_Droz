@@ -1,3 +1,8 @@
-node_modules
-package-lock.json
-package.json
+/typescript/node_modules/
+/public/uploads/produtos/*
+!/public/uploads/produtos/.gitkeep
+/public/uploads/perfis/*
+!/public/uploads/perfis/.gitkeep
+!/public/uploads/perfis/.htaccess
+.env
+*.log

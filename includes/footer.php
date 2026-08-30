@@ -1,5 +1,4 @@
 </main>
-<link rel="stylesheet" href="assets/css/style.css?v=2">
 <footer class="footer mt-5">
     <div class="container py-5">
         <div class="row g-4">

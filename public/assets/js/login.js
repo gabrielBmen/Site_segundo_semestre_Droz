@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('formLogin');
     const mensagem = document.getElementById('mensagemLogin');
-    if (!form || !mensagem || !window.drozApi)
+    if (!(form instanceof HTMLFormElement) || !mensagem || !window.drozApi)
         return;
     const mostrarMensagem = (texto, tipo = 'danger') => {
         mensagem.textContent = texto;
@@ -10,21 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const email = document.getElementById('email').value.trim();
-        const senha = document.getElementById('senha').value;
-        const redirect = document.getElementById('redirect').value;
+        const emailCampo = document.getElementById('email');
+        const senhaCampo = document.getElementById('senha');
+        const redirectCampo = document.getElementById('redirect');
+        if (!(emailCampo instanceof HTMLInputElement)
+            || !(senhaCampo instanceof HTMLInputElement)
+            || !(redirectCampo instanceof HTMLInputElement))
+            return;
         try {
             const resultado = await window.drozApi.postJson('/api/login.php', {
-                email,
-                senha,
-                redirect
+                email: emailCampo.value.trim(),
+                senha: senhaCampo.value,
+                redirect: redirectCampo.value
             });
             if (!resultado.sucesso) {
                 mostrarMensagem(resultado.mensagem ?? 'Não foi possível realizar o login.');
                 return;
             }
             mostrarMensagem(resultado.mensagem ?? 'Login realizado com sucesso.', 'success');
-            window.location.href = String(resultado.redirect ?? 'index.php');
+            window.location.href = resultado.redirect ?? 'index.php';
         }
         catch (erro) {
             console.error('Erro no login:', erro);

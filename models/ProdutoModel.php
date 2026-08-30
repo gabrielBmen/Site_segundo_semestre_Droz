@@ -17,6 +17,7 @@ class ProdutoModel
                 p.descricao,
                 p.preco,
                 p.estoque,
+                p.permite_pedido,
                 p.ativo,
                 p.data_criacao,
                 p.data_atualizacao,
@@ -64,6 +65,7 @@ class ProdutoModel
                 p.descricao,
                 p.preco,
                 p.estoque,
+                p.permite_pedido,
                 p.ativo,
                 p.data_criacao,
                 p.data_atualizacao,
@@ -99,7 +101,7 @@ class ProdutoModel
 
     public function buscarPorSlug(string $slug): ?array
     {
-        $stmt = $this->pdo->prepare("SELECT id_produto, id_categoria, nome, slug, descricao, preco, estoque, ativo FROM produtos WHERE slug = :slug LIMIT 1");
+        $stmt = $this->pdo->prepare("SELECT id_produto, id_categoria, nome, slug, descricao, preco, estoque, permite_pedido, ativo FROM produtos WHERE slug = :slug LIMIT 1");
         $stmt->execute([':slug' => $slug]);
         $produto = $stmt->fetch();
         return $produto ?: null;
@@ -130,13 +132,14 @@ class ProdutoModel
         string $descricao,
         float $preco,
         int $estoque,
+        bool $permitePedido,
         bool $ativo
     ): int {
         $stmt = $this->pdo->prepare(
             "INSERT INTO produtos
-                (id_categoria, nome, slug, descricao, preco, estoque, ativo)
+                (id_categoria, nome, slug, descricao, preco, estoque, permite_pedido, ativo)
              VALUES
-                (:id_categoria, :nome, :slug, :descricao, :preco, :estoque, :ativo)"
+                (:id_categoria, :nome, :slug, :descricao, :preco, :estoque, :permite_pedido, :ativo)"
         );
 
         $stmt->execute([
@@ -146,6 +149,7 @@ class ProdutoModel
             ':descricao' => $descricao !== '' ? $descricao : null,
             ':preco' => $preco,
             ':estoque' => $estoque,
+            ':permite_pedido' => $permitePedido ? 1 : 0,
             ':ativo' => $ativo ? 1 : 0,
         ]);
 
@@ -159,6 +163,7 @@ class ProdutoModel
         string $descricao,
         float $preco,
         int $estoque,
+        bool $permitePedido,
         bool $ativo
     ): bool {
         $stmt = $this->pdo->prepare(
@@ -168,6 +173,7 @@ class ProdutoModel
                  descricao = :descricao,
                  preco = :preco,
                  estoque = :estoque,
+                 permite_pedido = :permite_pedido,
                  ativo = :ativo
              WHERE id_produto = :id"
         );
@@ -178,6 +184,7 @@ class ProdutoModel
             ':descricao' => $descricao !== '' ? $descricao : null,
             ':preco' => $preco,
             ':estoque' => $estoque,
+            ':permite_pedido' => $permitePedido ? 1 : 0,
             ':ativo' => $ativo ? 1 : 0,
             ':id' => $idProduto,
         ]);

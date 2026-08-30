@@ -1,27 +1,38 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('formCadastro') as HTMLFormElement | null;
-    const mensagem = document.getElementById('mensagemCadastro') as HTMLElement | null;
+document.addEventListener('DOMContentLoaded', (): void => {
+    const form = document.getElementById('formCadastro');
+    const mensagem = document.getElementById('mensagemCadastro');
 
-    if (!form || !mensagem || !window.drozApi) return;
+    if (!(form instanceof HTMLFormElement) || !mensagem || !window.drozApi) return;
 
-    const mostrarMensagem = (texto: string, tipo: 'danger' | 'success' = 'danger') => {
+    const mostrarMensagem = (texto: string, tipo: 'danger' | 'success' = 'danger'): void => {
         mensagem.textContent = texto;
         mensagem.className = `alert alert-${tipo}`;
     };
 
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener('submit', async (event): Promise<void> => {
         event.preventDefault();
 
+        const nome = document.getElementById('nome');
+        const email = document.getElementById('emailCadastro');
+        const telefone = document.getElementById('telefone');
+        const senha = document.getElementById('senhaCadastro');
+        const confirmarSenha = document.getElementById('confirmarSenha');
+        if (!(nome instanceof HTMLInputElement)
+            || !(email instanceof HTMLInputElement)
+            || !(telefone instanceof HTMLInputElement)
+            || !(senha instanceof HTMLInputElement)
+            || !(confirmarSenha instanceof HTMLInputElement)) return;
+
         const dados = {
-            nome: (document.getElementById('nome') as HTMLInputElement).value.trim(),
-            email: (document.getElementById('emailCadastro') as HTMLInputElement).value.trim(),
-            telefone: (document.getElementById('telefone') as HTMLInputElement).value.trim(),
-            senha: (document.getElementById('senhaCadastro') as HTMLInputElement).value,
-            confirmar_senha: (document.getElementById('confirmarSenha') as HTMLInputElement).value
+            nome: nome.value.trim(),
+            email: email.value.trim(),
+            telefone: telefone.value.trim(),
+            senha: senha.value,
+            confirmar_senha: confirmarSenha.value
         };
 
         try {
-            const resultado = await window.drozApi.postJson<{ [key: string]: unknown }>('/api/cadastro.php', dados);
+            const resultado = await window.drozApi.postJson<unknown>('/api/cadastro.php', dados);
 
             if (!resultado.sucesso) {
                 mostrarMensagem(resultado.mensagem ?? 'Não foi possível concluir o cadastro.');
@@ -29,7 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             mostrarMensagem(`${resultado.mensagem ?? 'Cadastro realizado com sucesso.'} Redirecionando para o login...`, 'success');
-            const redirect = (document.getElementById('redirectCadastro') as HTMLInputElement | null)?.value ?? 'index.php';
+            const redirectCampo = document.getElementById('redirectCadastro');
+            const redirect = redirectCampo instanceof HTMLInputElement ? redirectCampo.value : 'index.php';
             const url = `login.php?redirect=${encodeURIComponent(redirect)}`;
 
             window.setTimeout(() => {

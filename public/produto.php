@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../includes/funcoes.php';
 require_once __DIR__ . '/../config/conexao.php';
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/csrf.php';
 
 $slug = trim($_GET['slug'] ?? '');
 $urlAtual = 'produto.php?slug=' . rawurlencode($slug);
@@ -22,6 +23,7 @@ $sql = "
         p.descricao,
         p.preco,
         p.estoque,
+        p.permite_pedido,
         c.nome AS categoria,
         i.caminho AS imagem
     FROM produtos p
@@ -83,9 +85,34 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
 
-                <a href="contato.php" class="btn btn-primary btn-lg px-4">
-                    Solicitar orçamento
-                </a>
+                <?php if ($adminLogado): ?>
+                    <div class="alert alert-secondary rounded-4 border-0 mb-3">
+                        Você está visualizando este item como administrador. Pedidos e orçamentos ficam disponíveis apenas para clientes.
+                    </div>
+                    <a href="/admin/produtos.php" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-pencil-square me-1"></i> Gerenciar produto
+                    </a>
+                <?php elseif ((bool) $produto['permite_pedido'] && (int) $produto['estoque'] > 0): ?>
+                    <form method="POST" action="carrinho.php" class="d-inline-flex flex-wrap align-items-end gap-2">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                        <input type="hidden" name="acao" value="adicionar">
+                        <input type="hidden" name="id_produto" value="<?= (int) $produto['id_produto'] ?>">
+                        <div>
+                            <label for="quantidade" class="form-label small text-white-50 mb-1">Quantidade</label>
+                            <input id="quantidade" name="quantidade" type="number" class="form-control" min="1" max="<?= (int) $produto['estoque'] ?>" value="1">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg px-4">
+                            <i class="bi bi-cart-plus me-1"></i> Adicionar ao pedido
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <div class="alert alert-info rounded-4 border-0 mb-3">
+                        Esta solução é atendida por orçamento personalizado.
+                    </div>
+                    <a href="contato.php?produto_id=<?= (int) $produto['id_produto'] ?>" class="btn btn-primary btn-lg px-4">
+                        Solicitar orçamento
+                    </a>
+                <?php endif; ?>
 
                 <a href="produtos.php" class="btn btn-outline-light btn-lg px-4 ms-2">
                     Voltar ao catálogo

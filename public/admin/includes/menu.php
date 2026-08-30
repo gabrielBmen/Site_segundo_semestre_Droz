@@ -11,11 +11,12 @@
         <a class="<?= $adminPagina === 'Dashboard' ? 'active' : '' ?>" href="/admin/">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a href="/admin/produtos.php"><i class="bi bi-box-seam"></i> Produtos</a>
-        <a href="/admin/categorias.php"><i class="bi bi-tags"></i> Categorias</a>
-        <a href="/admin/pedidos.php"><i class="bi bi-receipt"></i> Pedidos</a>
-        <a href="/admin/usuarios.php"><i class="bi bi-people"></i> Usuários</a>
-        <a href="/admin/configuracoes.php"><i class="bi bi-gear"></i> Configurações</a>
+        <a class="<?= $adminPagina === 'Produtos' ? 'active' : '' ?>" href="/admin/produtos.php"><i class="bi bi-box-seam"></i> Produtos</a>
+        <a class="<?= $adminPagina === 'Categorias' ? 'active' : '' ?>" href="/admin/categorias.php"><i class="bi bi-tags"></i> Categorias</a>
+        <a class="<?= $adminPagina === 'Pedidos' ? 'active' : '' ?>" href="/admin/pedidos.php"><i class="bi bi-receipt"></i> Pedidos</a>
+        <a class="<?= $adminPagina === 'Orçamentos' ? 'active' : '' ?>" href="/admin/orcamentos.php"><i class="bi bi-chat-dots"></i> Orçamentos</a>
+        <a class="<?= $adminPagina === 'Usuários' ? 'active' : '' ?>" href="/admin/usuarios.php"><i class="bi bi-people"></i> Usuários</a>
+        <a class="<?= $adminPagina === 'Configurações' ? 'active' : '' ?>" href="/admin/configuracoes.php"><i class="bi bi-gear"></i> Configurações</a>
     </nav>
 
     <div class="admin-help">

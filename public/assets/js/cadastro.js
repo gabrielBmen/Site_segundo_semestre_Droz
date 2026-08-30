@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('formCadastro');
     const mensagem = document.getElementById('mensagemCadastro');
-    if (!form || !mensagem || !window.drozApi)
+    if (!(form instanceof HTMLFormElement) || !mensagem || !window.drozApi)
         return;
     const mostrarMensagem = (texto, tipo = 'danger') => {
         mensagem.textContent = texto;
@@ -10,12 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        const nome = document.getElementById('nome');
+        const email = document.getElementById('emailCadastro');
+        const telefone = document.getElementById('telefone');
+        const senha = document.getElementById('senhaCadastro');
+        const confirmarSenha = document.getElementById('confirmarSenha');
+        if (!(nome instanceof HTMLInputElement)
+            || !(email instanceof HTMLInputElement)
+            || !(telefone instanceof HTMLInputElement)
+            || !(senha instanceof HTMLInputElement)
+            || !(confirmarSenha instanceof HTMLInputElement))
+            return;
         const dados = {
-            nome: document.getElementById('nome').value.trim(),
-            email: document.getElementById('emailCadastro').value.trim(),
-            telefone: document.getElementById('telefone').value.trim(),
-            senha: document.getElementById('senhaCadastro').value,
-            confirmar_senha: document.getElementById('confirmarSenha').value
+            nome: nome.value.trim(),
+            email: email.value.trim(),
+            telefone: telefone.value.trim(),
+            senha: senha.value,
+            confirmar_senha: confirmarSenha.value
         };
         try {
             const resultado = await window.drozApi.postJson('/api/cadastro.php', dados);
@@ -24,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             mostrarMensagem(`${resultado.mensagem ?? 'Cadastro realizado com sucesso.'} Redirecionando para o login...`, 'success');
-            const redirect = document.getElementById('redirectCadastro')?.value ?? 'index.php';
+            const redirectCampo = document.getElementById('redirectCadastro');
+            const redirect = redirectCampo instanceof HTMLInputElement ? redirectCampo.value : 'index.php';
             const url = `login.php?redirect=${encodeURIComponent(redirect)}`;
             window.setTimeout(() => {
                 window.location.href = url;

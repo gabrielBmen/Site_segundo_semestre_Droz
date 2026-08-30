@@ -12,7 +12,10 @@ class ProdutoController
     {
         return [
             'sucesso' => true,
-            'dados' => $this->produtoModel->listar($busca, $idCategoria),
+            'dados' => array_map(
+                fn (array $produto): array => $this->normalizarProduto($produto),
+                $this->produtoModel->listar($busca, $idCategoria)
+            ),
         ];
     }
 
@@ -38,7 +41,7 @@ class ProdutoController
 
         return [
             'sucesso' => true,
-            'dados' => $produto,
+            'dados' => $this->normalizarProduto($produto),
         ];
     }
 
@@ -53,6 +56,7 @@ class ProdutoController
         $descricao = trim((string) ($dados['descricao'] ?? ''));
         $preco = $this->normalizarDecimal($dados['preco'] ?? 0);
         $estoque = (int) ($dados['estoque'] ?? 0);
+        $permitePedido = $this->normalizarBoolean($dados['permite_pedido'] ?? false);
         $ativo = $this->normalizarBoolean($dados['ativo'] ?? true);
 
         if ($idCategoria <= 0) {
@@ -81,6 +85,7 @@ class ProdutoController
                 $descricao,
                 $preco,
                 $estoque,
+                $permitePedido,
                 $ativo
             );
 
@@ -103,6 +108,7 @@ class ProdutoController
             $descricao,
             $preco,
             $estoque,
+            $permitePedido,
             $ativo
         );
 
@@ -413,5 +419,27 @@ class ProdutoController
             'mensagem' => $mensagem,
             'status' => $status,
         ];
+    }
+
+    /** @param array<string, mixed> $produto */
+    private function normalizarProduto(array $produto): array
+    {
+        $produto['id_produto'] = (int) $produto['id_produto'];
+        $produto['id_categoria'] = (int) $produto['id_categoria'];
+        $produto['preco'] = (float) $produto['preco'];
+        $produto['estoque'] = (int) $produto['estoque'];
+        $produto['permite_pedido'] = (bool) $produto['permite_pedido'];
+        $produto['ativo'] = (bool) $produto['ativo'];
+
+        if (isset($produto['imagens']) && is_array($produto['imagens'])) {
+            $produto['imagens'] = array_map(static function (array $imagem): array {
+                $imagem['id_imagem'] = (int) $imagem['id_imagem'];
+                $imagem['id_produto'] = (int) $imagem['id_produto'];
+                $imagem['principal'] = (bool) $imagem['principal'];
+                return $imagem;
+            }, $produto['imagens']);
+        }
+
+        return $produto;
     }
 }

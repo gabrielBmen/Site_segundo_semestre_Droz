@@ -3,6 +3,17 @@ const API_PRODUTOS = '/api/produtos.php';
 const $ = (selector) => {
     return document.querySelector(selector);
 };
+const definirValor = (selector, valor) => {
+    const campo = $(selector);
+    if (campo instanceof HTMLInputElement || campo instanceof HTMLSelectElement || campo instanceof HTMLTextAreaElement) {
+        campo.value = valor;
+    }
+};
+const definirMarcado = (selector, marcado) => {
+    const campo = $(selector);
+    if (campo instanceof HTMLInputElement)
+        campo.checked = marcado;
+};
 const formatarDinheiroProduto = (valor) => new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
@@ -33,10 +44,10 @@ const preencherCategorias = () => {
     const filtro = $('#filtroCategoria');
     const select = $('#produtoCategoria');
     const opcoes = categorias.map((categoria) => (`<option value="${categoria.id_categoria}">${escapeHtml(categoria.nome)}</option>`)).join('');
-    if (filtro) {
+    if (filtro instanceof HTMLSelectElement) {
         filtro.innerHTML = '<option value="">Todas as categorias</option>' + opcoes;
     }
-    if (select) {
+    if (select instanceof HTMLSelectElement) {
         select.innerHTML = '<option value="">Selecione...</option>' + opcoes;
     }
 };
@@ -53,14 +64,16 @@ const carregarProdutos = async () => {
     const count = $('#produtoCount');
     if (!tbody || !count)
         return;
-    const busca = $('#buscaProduto')?.value.trim() ?? '';
-    const idCategoria = $('#filtroCategoria')?.value ?? '';
+    const buscaCampo = $('#buscaProduto');
+    const categoriaCampo = $('#filtroCategoria');
+    const busca = buscaCampo instanceof HTMLInputElement ? buscaCampo.value.trim() : '';
+    const idCategoria = categoriaCampo instanceof HTMLSelectElement ? categoriaCampo.value : '';
     const params = new URLSearchParams({ acao: 'listar' });
     if (busca)
         params.set('busca', busca);
     if (idCategoria)
         params.set('id_categoria', idCategoria);
-    tbody.innerHTML = '<tr><td colspan="8" class="text-white-50">Carregando produtos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-white-50">Carregando produtos...</td></tr>';
     try {
         const resultado = await window.drozApi.getJson(`${API_PRODUTOS}?${params.toString()}`);
         if (!resultado.sucesso || !resultado.dados) {
@@ -70,7 +83,7 @@ const carregarProdutos = async () => {
         count.textContent = String(produtos.length);
         if (produtos.length === 0) {
             tbody.innerHTML =
-                '<tr><td colspan="8" class="text-white-50">Nenhum produto encontrado.</td></tr>';
+                '<tr><td colspan="9" class="text-white-50">Nenhum produto encontrado.</td></tr>';
             return;
         }
         tbody.innerHTML = produtos.map((produto) => {
@@ -87,11 +100,16 @@ const carregarProdutos = async () => {
                         <div class="small text-white-50">${escapeHtml(produto.slug)}</div>
                     </td>
                     <td>${escapeHtml(produto.categoria)}</td>
-                    <td>${formatarDinheiroProduto(Number(produto.preco))}</td>
-                    <td>${Number(produto.estoque)}</td>
-                    <td>
-                        <span class="badge ${Number(produto.ativo) === 1 ? 'text-bg-success' : 'text-bg-secondary'}">
-                            ${Number(produto.ativo) === 1 ? 'Ativo' : 'Inativo'}
+                        <td>${formatarDinheiroProduto(produto.preco)}</td>
+                        <td>${produto.estoque}</td>
+                        <td>
+                            <span class="badge ${produto.permite_pedido ? 'text-bg-info' : 'text-bg-warning'}">
+                                ${produto.permite_pedido ? 'Pedido online' : 'Sob orçamento'}
+                            </span>
+                        </td>
+                        <td>
+                        <span class="badge ${produto.ativo ? 'text-bg-success' : 'text-bg-secondary'}">
+                            ${produto.ativo ? 'Ativo' : 'Inativo'}
                         </span>
                     </td>
                     <td class="text-end text-nowrap">
@@ -108,18 +126,19 @@ const carregarProdutos = async () => {
     }
     catch (erro) {
         tbody.innerHTML =
-            '<tr><td colspan="8" class="text-danger">Não foi possível carregar os produtos.</td></tr>';
+            '<tr><td colspan="9" class="text-danger">Não foi possível carregar os produtos.</td></tr>';
         mostrarAlertaProduto(erro instanceof Error ? erro.message : 'Erro ao carregar produtos.', 'danger');
     }
 };
 const limparForm = () => {
     const form = $('#produtoForm');
-    if (!form)
+    if (!(form instanceof HTMLFormElement))
         return;
     form.reset();
-    $('#produtoId').value = '';
-    $('#produtoAtivo').checked = true;
-    $('#produtoEstoque').value = '0';
+    definirValor('#produtoId', '');
+    definirMarcado('#produtoAtivo', true);
+    definirMarcado('#produtoPermitePedido', false);
+    definirValor('#produtoEstoque', '0');
     const titulo = $('#produtoModalLabel');
     if (titulo)
         titulo.textContent = 'Novo produto';
@@ -134,21 +153,19 @@ const limparForm = () => {
         preview.innerHTML = '';
 };
 const preencherForm = (produto) => {
-    $('#produtoId').value = String(produto.id_produto);
-    $('#produtoNome').value = produto.nome;
-    $('#produtoCategoria').value = String(produto.id_categoria);
-    $('#produtoPreco').value =
-        Number(produto.preco).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    $('#produtoEstoque').value = String(produto.estoque);
+    definirValor('#produtoId', String(produto.id_produto));
+    definirValor('#produtoNome', produto.nome);
+    definirValor('#produtoCategoria', String(produto.id_categoria));
+    definirValor('#produtoPreco', produto.preco.toLocaleString('pt-BR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }));
+    definirValor('#produtoEstoque', String(produto.estoque));
     // Corrigido: Number("0") === 0 e Number("1") === 1.
     // Boolean("0") seria true, causando o switch sempre ligado ao editar.
-    $('#produtoAtivo').checked =
-        Number(produto.ativo) === 1;
-    $('#produtoDescricao').value =
-        produto.descricao ?? '';
+    definirMarcado('#produtoAtivo', produto.ativo);
+    definirMarcado('#produtoPermitePedido', produto.permite_pedido);
+    definirValor('#produtoDescricao', produto.descricao ?? '');
     const titulo = $('#produtoModalLabel');
     if (titulo)
         titulo.textContent = `Editar produto #${produto.id_produto}`;
@@ -189,7 +206,7 @@ const renderImagensAtuais = (imagens) => {
 const previewNovasImagens = () => {
     const input = $('#produtoImagens');
     const container = $('#previewNovasImagens');
-    if (!input || !container)
+    if (!(input instanceof HTMLInputElement) || !container)
         return;
     container.innerHTML = '';
     Array.from(input.files ?? []).forEach((arquivo) => {
@@ -227,12 +244,17 @@ const salvarProduto = async (event) => {
     const form = $('#produtoForm');
     const botao = $('#btnSalvarProduto');
     const produtoAtivo = $('#produtoAtivo');
-    if (!form || !botao || !produtoAtivo)
+    const produtoPermitePedido = $('#produtoPermitePedido');
+    if (!(form instanceof HTMLFormElement)
+        || !(botao instanceof HTMLButtonElement)
+        || !(produtoAtivo instanceof HTMLInputElement)
+        || !(produtoPermitePedido instanceof HTMLInputElement))
         return;
     const formData = new FormData(form);
     // Checkbox desmarcado não entra no FormData automaticamente.
     // Forçamos sempre 1 ou 0 para o PHP receber o estado correto.
     formData.set('ativo', produtoAtivo.checked ? '1' : '0');
+    formData.set('permite_pedido', produtoPermitePedido.checked ? '1' : '0');
     botao.disabled = true;
     botao.innerHTML =
         '<span class="spinner-border spinner-border-sm me-1"></span> Salvando...';
@@ -262,6 +284,12 @@ const excluirProduto = async (id, nome) => {
     const formData = new FormData();
     formData.set('acao', 'excluir');
     formData.set('id_produto', String(id));
+    const csrf = $('#produtoCsrfToken');
+    if (!(csrf instanceof HTMLInputElement) || csrf.value === '') {
+        mostrarAlertaProduto('Sua sessão expirou. Atualize a página e tente novamente.', 'danger');
+        return;
+    }
+    formData.set('csrf_token', csrf.value);
     try {
         const resultado = await window.drozApi.postFormData(API_PRODUTOS, formData);
         if (!resultado.sucesso) {
@@ -281,10 +309,8 @@ const ligarEventos = () => {
     });
     $('#produtoImagens')?.addEventListener('change', previewNovasImagens);
     $('#buscaProduto')?.addEventListener('input', () => {
-        window.clearTimeout(window
-            .produtoSearchTimer);
-        window
-            .produtoSearchTimer = window.setTimeout(() => {
+        window.clearTimeout(window.produtoSearchTimer);
+        window.produtoSearchTimer = window.setTimeout(() => {
             void carregarProdutos();
         }, 350);
     });
@@ -293,6 +319,8 @@ const ligarEventos = () => {
     });
     $('#produtosTableBody')?.addEventListener('click', (event) => {
         const alvo = event.target;
+        if (!(alvo instanceof Element))
+            return;
         const editar = alvo.closest('[data-editar-produto]');
         const excluir = alvo.closest('[data-excluir-produto]');
         if (editar) {
@@ -311,7 +339,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const ModalClass = window.bootstrap?.Modal;
         if (ModalClass) {
             const elemento = $('#produtoModal');
-            if (elemento) {
+            if (elemento instanceof HTMLElement) {
                 modal = new ModalClass(elemento);
             }
         }

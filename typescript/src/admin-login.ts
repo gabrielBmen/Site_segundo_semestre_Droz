@@ -1,24 +1,25 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('formAdminLogin') as HTMLFormElement | null;
-    const mensagem = document.getElementById('mensagemAdminLogin') as HTMLElement | null;
+document.addEventListener('DOMContentLoaded', (): void => {
+    const form = document.getElementById('formAdminLogin');
+    const mensagem = document.getElementById('mensagemAdminLogin');
 
-    if (!form || !mensagem || !window.drozApi) return;
+    if (!(form instanceof HTMLFormElement) || !mensagem || !window.drozApi) return;
 
-    const mostrarMensagem = (texto: string, tipo: 'danger' | 'success' = 'danger') => {
+    const mostrarMensagem = (texto: string, tipo: 'danger' | 'success' = 'danger'): void => {
         mensagem.textContent = texto;
         mensagem.className = `alert alert-${tipo}`;
     };
 
-    form.addEventListener('submit', async (event) => {
+    form.addEventListener('submit', async (event): Promise<void> => {
         event.preventDefault();
 
-        const email = (document.getElementById('adminEmail') as HTMLInputElement).value.trim();
-        const senha = (document.getElementById('adminSenha') as HTMLInputElement).value;
+        const emailCampo = document.getElementById('adminEmail');
+        const senhaCampo = document.getElementById('adminSenha');
+        if (!(emailCampo instanceof HTMLInputElement) || !(senhaCampo instanceof HTMLInputElement)) return;
 
         try {
-            const resultado = await window.drozApi.postJson<{ [key: string]: unknown }>('/api/admin-login.php', {
-                email,
-                senha
+            const resultado = await window.drozApi.postJson<unknown>('/api/admin-login.php', {
+                email: emailCampo.value.trim(),
+                senha: senhaCampo.value
             });
 
             if (!resultado.sucesso) {
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             mostrarMensagem(resultado.mensagem ?? 'Login realizado com sucesso.', 'success');
-            window.location.href = String(resultado.redirect ?? '/admin/');
+            window.location.href = resultado.redirect ?? '/admin/';
         } catch (erro) {
             console.error('Erro no login administrativo:', erro);
             mostrarMensagem(erro instanceof Error ? erro.message : 'Não foi possível concluir o login.');

@@ -31,7 +31,7 @@ include __DIR__ . '/../includes/header.php';
 
                     <h1 class="section-title mb-2">Criar conta</h1>
                     <p class="section-subtitle mb-4">
-                        Com a conta, você poderá acessar preços, detalhes das máquinas e enviar solicitações à DROZ Robótica.
+                        Com a conta, você poderá comprar produtos, acompanhar o histórico dos pedidos e gerenciar seus dados com segurança.
                     </p>
 
                     <div id="mensagemCadastro" class="alert d-none" role="alert"></div>
@@ -51,7 +51,8 @@ include __DIR__ . '/../includes/header.php';
 
                         <div class="mb-3">
                             <label for="telefone" class="form-label">Telefone</label>
-                            <input type="text" id="telefone" name="telefone" class="form-control" autocomplete="tel">
+                            <input type="tel" id="telefone" name="telefone" class="form-control" autocomplete="tel" maxlength="30" placeholder="(44) 99999-9999" required>
+                            <div class="form-text text-white-50">Você poderá alterar este número posteriormente em Minha conta.</div>
                         </div>
 
                         <div class="mb-3">
@@ -67,6 +68,9 @@ include __DIR__ . '/../includes/header.php';
                         <button type="submit" class="btn btn-primary btn-lg w-100">
                             Criar conta
                         </button>
+                        <p class="small text-white-50 text-center mt-3 mb-0">
+                            Depois do cadastro, você também poderá adicionar uma foto ao perfil.
+                        </p>
                     </form>
 
                     <p class="text-center text-white-50 mt-4 mb-0">

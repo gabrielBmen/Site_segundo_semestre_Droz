@@ -144,7 +144,7 @@ include __DIR__ . '/../includes/header.php';
 
 ?>
 
-<link rel="stylesheet" href="assets/css/style.css?v=4">
+<link rel="stylesheet" href="assets/css/style.css?v=<?= time() ?>">
 
 
 <!-- =========================================================
@@ -189,12 +189,11 @@ include __DIR__ . '/../includes/header.php';
                     </a>
 
 
-                    <a href="contato.php"
-                       class="btn btn-outline-light btn-lg px-4">
-
-                        Solicitar orçamento
-
-                    </a>
+                    <?php if (!$adminLogado): ?>
+                        <a href="contato.php" class="btn btn-outline-light btn-lg px-4">
+                            Solicitar orçamento
+                        </a>
+                    <?php endif; ?>
 
                 </div>
 
@@ -595,7 +594,7 @@ include __DIR__ . '/../includes/header.php';
 
                             <div class="d-flex justify-content-between align-items-center">
 
-                                <div clasice">
+                                <div class="product-price-area">
 
                                     <?php if (usuarioLogado()): ?>
 

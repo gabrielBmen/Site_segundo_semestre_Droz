@@ -1,0 +1,26 @@
+{
+  "name": "site_segundo_semestre_droz",
+  "version": "1.0.0",
+  "description": "- `index.php` - `sobre.php` - `produtos.php` - `servicos.php` - `contato.php` - `includes/header.php` - `includes/footer.php` - `includes/funcoes.php` - `config/conexao.php` - `assets/css/style.css` - `database/droz_robotica.sql`",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "check": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabrielBmen/Site_segundo_semestre_Droz.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/gabrielBmen/Site_segundo_semestre_Droz/issues"
+  },
+  "homepage": "https://github.com/gabrielBmen/Site_segundo_semestre_Droz#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

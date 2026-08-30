@@ -26,51 +26,117 @@ interface TopProduto {
     faturamento: number;
 }
 
+interface DashboardPagination {
+    pagina: number;
+    por_pagina: number;
+    total: number;
+    total_paginas: number;
+}
+
 interface DashboardData {
     itens: DashboardItem[];
     status: DashboardStatus[];
     top_produtos: TopProduto[];
+    itens_paginados: DashboardItem[];
     vazio: boolean;
+    periodo: {
+        tipo: string;
+        inicio: string;
+        fim: string;
+    };
+    filtros: {
+        busca: string;
+        status: string;
+    };
+    paginacao: DashboardPagination;
 }
 
-const dinheiro = (valor: number): string => {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(Number.isFinite(valor) ? valor : 0);
+let paginaAtual = 1;
+
+const dinheiro = (valor: number): string => new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL'
+}).format(Number.isFinite(valor) ? valor : 0);
+
+const numeroSeguro = (valor: number): number => Number.isFinite(valor) ? valor : 0;
+
+const escaparHtml = (texto: string): string => texto
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+const definirTexto = (id: string, texto: string): void => {
+    const elemento = document.getElementById(id);
+    if (elemento) elemento.textContent = texto;
 };
 
-const numeroSeguro = (valor: unknown): number => {
-    const numero = Number(valor);
-    return Number.isFinite(numero) ? numero : 0;
+const valorSelect = (id: string, padrao: string): string => {
+    const elemento = document.getElementById(id);
+    return elemento instanceof HTMLSelectElement ? elemento.value : padrao;
+};
+
+const valorInput = (id: string): string => {
+    const elemento = document.getElementById(id);
+    return elemento instanceof HTMLInputElement ? elemento.value : '';
 };
 
 const atualizarMetricas = (itens: DashboardItem[]): void => {
-    // Reduce principal da rubrica: faturamento global a partir do array bruto.
-    const faturamentoTotal = itens.reduce((total, item) => {
+    const vendas = itens.filter((item) => item.status !== 'cancelado');
+    const faturamentoTotal = vendas.reduce((total, item) => {
         return total + numeroSeguro(item.quantidade) * numeroSeguro(item.preco_unitario);
     }, 0);
 
-    // Reduce para consolidar quantidade global de itens.
-    const itensVendidos = itens.reduce((total, item) => {
+    const itensVendidos = vendas.reduce((total, item) => {
         return total + numeroSeguro(item.quantidade);
     }, 0);
 
-    // Reduce para descobrir o total de cada pedido sem depender de valores pré-calculados pela UI.
-    const totaisPorPedido = itens.reduce<Record<string, number>>((acc, item) => {
+    const totaisPorPedido = vendas.reduce<Record<string, number>>((acumulador, item) => {
         const chave = String(item.id_pedido);
         const valorItem = numeroSeguro(item.quantidade) * numeroSeguro(item.preco_unitario);
-        acc[chave] = (acc[chave] ?? 0) + valorItem;
-        return acc;
+        acumulador[chave] = (acumulador[chave] ?? 0) + valorItem;
+        return acumulador;
     }, {});
 
     const pedidos = Object.keys(totaisPorPedido).length;
-    const ticketMedio = pedidos > 0 ? faturamentoTotal / pedidos : 0;
+    const mesesComVenda = new Set(vendas.map((item) => item.data_pedido.slice(0, 7))).size;
+    const faturamentoMedioMensal = faturamentoTotal / Math.max(1, mesesComVenda);
 
-    (document.getElementById('metricFaturamento') as HTMLElement).textContent = dinheiro(faturamentoTotal);
-    (document.getElementById('metricPedidos') as HTMLElement).textContent = String(pedidos);
-    (document.getElementById('metricItens') as HTMLElement).textContent = String(itensVendidos);
-    (document.getElementById('metricTicket') as HTMLElement).textContent = dinheiro(ticketMedio);
+    definirTexto('metricFaturamento', dinheiro(faturamentoTotal));
+    definirTexto('metricPedidos', String(pedidos));
+    definirTexto('metricItens', String(itensVendidos));
+    definirTexto('metricTicket', dinheiro(faturamentoMedioMensal));
+};
+
+const formatarData = (data: string): string => {
+    const [ano, mes, dia] = data.slice(0, 10).split('-');
+    return ano && mes && dia ? `${dia}/${mes}/${ano}` : data;
+};
+
+const atualizarCamposPersonalizados = (): void => {
+    const mostrar = valorSelect('periodoDashboard', 'mes') === 'personalizado';
+    document.querySelectorAll<HTMLElement>('.dashboard-custom-date').forEach((campo) => {
+        campo.classList.toggle('d-none', !mostrar);
+    });
+};
+
+const criarUrlDashboard = (): string => {
+    const periodo = valorSelect('periodoDashboard', 'mes');
+    const params = new URLSearchParams({
+        periodo,
+        busca: valorInput('buscaDashboard').trim(),
+        status: valorSelect('statusDashboard', ''),
+        pagina: String(paginaAtual),
+        por_pagina: valorSelect('porPaginaDashboard', '10')
+    });
+
+    if (periodo === 'personalizado') {
+        params.set('inicio', valorInput('dataInicioDashboard'));
+        params.set('fim', valorInput('dataFimDashboard'));
+    }
+
+    return `/api/dashboard.php?${params.toString()}`;
 };
 
 const renderStatus = (status: DashboardStatus[]): void => {
@@ -84,9 +150,9 @@ const renderStatus = (status: DashboardStatus[]): void => {
 
     tbody.innerHTML = status.map((item) => `
         <tr>
-            <td><span class="badge text-bg-secondary">${item.status}</span></td>
-            <td>${numeroSeguro(item.quantidade_pedidos)}</td>
-            <td>${dinheiro(numeroSeguro(item.valor_total))}</td>
+            <td><span class="badge text-bg-secondary">${escaparHtml(item.status)}</span></td>
+            <td>${item.quantidade_pedidos}</td>
+            <td>${dinheiro(item.valor_total)}</td>
         </tr>
     `).join('');
 };
@@ -100,81 +166,123 @@ const renderTopProdutos = (produtos: TopProduto[]): void => {
         return;
     }
 
-    container.innerHTML = produtos.map((produto, index) => `
+    container.innerHTML = produtos.map((produto, indice) => `
         <div class="admin-info-box d-flex justify-content-between align-items-center gap-3">
             <div>
-                <div class="fw-semibold">${index + 1}. ${produto.produto}</div>
-                <small class="text-white-50">${produto.categoria} · ${numeroSeguro(produto.quantidade_vendida)} itens</small>
+                <div class="fw-semibold">${indice + 1}. ${escaparHtml(produto.produto)}</div>
+                <small class="text-white-50">${escaparHtml(produto.categoria)} · ${produto.quantidade_vendida} itens</small>
             </div>
-            <strong>${dinheiro(numeroSeguro(produto.faturamento))}</strong>
+            <strong>${dinheiro(produto.faturamento)}</strong>
         </div>
     `).join('');
 };
 
-const renderRawData = (itens: DashboardItem[]): void => {
+const renderRawData = (itens: DashboardItem[], paginacao: DashboardPagination): void => {
     const tbody = document.getElementById('rawDataTableBody');
-    const count = document.getElementById('rawDataCount');
-    if (!tbody || !count) return;
+    if (!tbody) return;
 
-    count.textContent = String(itens.length);
+    definirTexto('rawDataCount', String(paginacao.total));
+    definirTexto('dashboardPaginationLabel', `Página ${paginacao.pagina} de ${paginacao.total_paginas} · ${paginacao.total} item(ns)`);
+
+    const anterior = document.getElementById('dashboardPreviousPage');
+    const proxima = document.getElementById('dashboardNextPage');
+    if (anterior instanceof HTMLButtonElement) anterior.disabled = paginacao.pagina <= 1;
+    if (proxima instanceof HTMLButtonElement) proxima.disabled = paginacao.pagina >= paginacao.total_paginas;
 
     if (itens.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-white-50">Nenhum dado registrado.</td></tr>';
         return;
     }
 
-    tbody.innerHTML = itens.slice(0, 20).map((item) => `
+    tbody.innerHTML = itens.map((item) => `
         <tr>
-            <td>#${numeroSeguro(item.id_pedido)}</td>
-            <td>${item.produto}</td>
-            <td>${numeroSeguro(item.quantidade)}</td>
-            <td>${dinheiro(numeroSeguro(item.preco_unitario))}</td>
-            <td>${dinheiro(numeroSeguro(item.quantidade) * numeroSeguro(item.preco_unitario))}</td>
-            <td><span class="badge text-bg-secondary">${item.status}</span></td>
+            <td>#${item.id_pedido}</td>
+            <td>${escaparHtml(item.produto)}</td>
+            <td>${item.quantidade}</td>
+            <td>${dinheiro(item.preco_unitario)}</td>
+            <td>${dinheiro(item.valor_item)}</td>
+            <td><span class="badge text-bg-secondary">${escaparHtml(item.status)}</span></td>
         </tr>
     `).join('');
 };
 
 const mostrarAlerta = (texto: string, tipo: 'danger' | 'warning' | 'success'): void => {
-    const alert = document.getElementById('dashboardAlert');
-    if (!alert) return;
-    alert.textContent = texto;
-    alert.className = `alert alert-${tipo}`;
+    const alerta = document.getElementById('dashboardAlert');
+    if (!alerta) return;
+    alerta.textContent = texto;
+    alerta.className = `alert alert-${tipo}`;
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+const ocultarAlerta = (): void => {
+    const alerta = document.getElementById('dashboardAlert');
+    if (alerta) alerta.className = 'alert d-none';
+};
+
+const paginacaoVazia = (): DashboardPagination => ({
+    pagina: 1,
+    por_pagina: 10,
+    total: 0,
+    total_paginas: 1
+});
+
+const carregarDashboard = async (): Promise<void> => {
     if (!window.drozApi) return;
 
     try {
-        const resultado = await window.drozApi.getJson<DashboardData>('/api/dashboard.php');
-
+        const resultado = await window.drozApi.getJson<DashboardData>(criarUrlDashboard());
         if (!resultado.sucesso || !resultado.dados) {
             throw new Error(resultado.mensagem ?? 'Não foi possível carregar a dashboard.');
         }
 
         const dados = resultado.dados;
-        const itens = Array.isArray(dados.itens) ? dados.itens : [];
-        const status = Array.isArray(dados.status) ? dados.status : [];
-        const topProdutos = Array.isArray(dados.top_produtos) ? dados.top_produtos : [];
+        paginaAtual = dados.paginacao.pagina;
+        atualizarMetricas(dados.itens);
+        renderStatus(dados.status);
+        renderTopProdutos(dados.top_produtos);
+        renderRawData(dados.itens_paginados, dados.paginacao);
+        definirTexto(
+            'dashboardPeriodLabel',
+            `Exibindo vendas de ${formatarData(dados.periodo.inicio)} até ${formatarData(dados.periodo.fim)}.`
+        );
 
-        atualizarMetricas(itens);
-        renderStatus(status);
-        renderTopProdutos(topProdutos);
-        renderRawData(itens);
-
-        const emptyState = document.getElementById('emptyState');
-        if (emptyState) {
-            emptyState.classList.toggle('d-none', itens.length > 0);
-        }
+        const vazio = document.getElementById('emptyState');
+        if (vazio) vazio.classList.toggle('d-none', !dados.vazio);
+        ocultarAlerta();
     } catch (erro) {
         console.error('Erro na dashboard:', erro);
-        mostrarAlerta(
-            erro instanceof Error ? erro.message : 'Não foi possível carregar os dados da dashboard.',
-            'danger'
-        );
+        mostrarAlerta(erro instanceof Error ? erro.message : 'Não foi possível carregar os dados.', 'danger');
+        atualizarMetricas([]);
         renderStatus([]);
         renderTopProdutos([]);
-        renderRawData([]);
-        atualizarMetricas([]);
+        renderRawData([], paginacaoVazia());
     }
+};
+
+document.addEventListener('DOMContentLoaded', (): void => {
+    const periodo = document.getElementById('periodoDashboard');
+    const inicio = document.getElementById('dataInicioDashboard');
+    const fim = document.getElementById('dataFimDashboard');
+    const hoje = new Date().toISOString().slice(0, 10);
+    const trintaDiasAtras = new Date(Date.now() - 29 * 86400000).toISOString().slice(0, 10);
+
+    if (inicio instanceof HTMLInputElement) inicio.value = trintaDiasAtras;
+    if (fim instanceof HTMLInputElement) fim.value = hoje;
+    atualizarCamposPersonalizados();
+
+    periodo?.addEventListener('change', atualizarCamposPersonalizados);
+    document.getElementById('dashboardFilters')?.addEventListener('submit', (evento): void => {
+        evento.preventDefault();
+        paginaAtual = 1;
+        void carregarDashboard();
+    });
+    document.getElementById('dashboardPreviousPage')?.addEventListener('click', (): void => {
+        paginaAtual = Math.max(1, paginaAtual - 1);
+        void carregarDashboard();
+    });
+    document.getElementById('dashboardNextPage')?.addEventListener('click', (): void => {
+        paginaAtual += 1;
+        void carregarDashboard();
+    });
+
+    void carregarDashboard();
 });

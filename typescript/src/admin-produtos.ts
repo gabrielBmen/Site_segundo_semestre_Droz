@@ -14,6 +14,7 @@ interface ProdutoAdmin {
     descricao: string | null;
     preco: number;
     estoque: number;
+    permite_pedido: boolean;
     ativo: boolean;
     categoria: string;
     imagem: string | null;
@@ -30,6 +31,18 @@ const API_PRODUTOS = '/api/produtos.php';
 
 const $ = <T extends Element>(selector: string): T | null => {
     return document.querySelector<T>(selector);
+};
+
+const definirValor = (selector: string, valor: string): void => {
+    const campo = $(selector);
+    if (campo instanceof HTMLInputElement || campo instanceof HTMLSelectElement || campo instanceof HTMLTextAreaElement) {
+        campo.value = valor;
+    }
+};
+
+const definirMarcado = (selector: string, marcado: boolean): void => {
+    const campo = $(selector);
+    if (campo instanceof HTMLInputElement) campo.checked = marcado;
 };
 
 const formatarDinheiroProduto = (valor: number): string => new Intl.NumberFormat('pt-BR', {
@@ -57,7 +70,7 @@ const mostrarAlertaProduto = (
     mensagem: string,
     tipo: 'success' | 'danger' | 'warning' = 'success'
 ): void => {
-    const alerta = $('#produtoAlert') as HTMLDivElement | null;
+    const alerta = $('#produtoAlert');
     if (!alerta) return;
 
     alerta.textContent = mensagem;
@@ -69,18 +82,18 @@ const mostrarAlertaProduto = (
 };
 
 const preencherCategorias = (): void => {
-    const filtro = $('#filtroCategoria') as HTMLSelectElement | null;
-    const select = $('#produtoCategoria') as HTMLSelectElement | null;
+    const filtro = $('#filtroCategoria');
+    const select = $('#produtoCategoria');
 
     const opcoes = categorias.map((categoria) => (
         `<option value="${categoria.id_categoria}">${escapeHtml(categoria.nome)}</option>`
     )).join('');
 
-    if (filtro) {
+    if (filtro instanceof HTMLSelectElement) {
         filtro.innerHTML = '<option value="">Todas as categorias</option>' + opcoes;
     }
 
-    if (select) {
+    if (select instanceof HTMLSelectElement) {
         select.innerHTML = '<option value="">Selecione...</option>' + opcoes;
     }
 };
@@ -104,15 +117,17 @@ const carregarProdutos = async (): Promise<void> => {
 
     if (!tbody || !count) return;
 
-    const busca = ($('#buscaProduto') as HTMLInputElement | null)?.value.trim() ?? '';
-    const idCategoria = ($('#filtroCategoria') as HTMLSelectElement | null)?.value ?? '';
+    const buscaCampo = $('#buscaProduto');
+    const categoriaCampo = $('#filtroCategoria');
+    const busca = buscaCampo instanceof HTMLInputElement ? buscaCampo.value.trim() : '';
+    const idCategoria = categoriaCampo instanceof HTMLSelectElement ? categoriaCampo.value : '';
 
     const params = new URLSearchParams({ acao: 'listar' });
 
     if (busca) params.set('busca', busca);
     if (idCategoria) params.set('id_categoria', idCategoria);
 
-    tbody.innerHTML = '<tr><td colspan="8" class="text-white-50">Carregando produtos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-white-50">Carregando produtos...</td></tr>';
 
     try {
         const resultado = await window.drozApi.getJson<ProdutoAdmin[]>(
@@ -128,7 +143,7 @@ const carregarProdutos = async (): Promise<void> => {
 
         if (produtos.length === 0) {
             tbody.innerHTML =
-                '<tr><td colspan="8" class="text-white-50">Nenhum produto encontrado.</td></tr>';
+                '<tr><td colspan="9" class="text-white-50">Nenhum produto encontrado.</td></tr>';
             return;
         }
 
@@ -148,11 +163,16 @@ const carregarProdutos = async (): Promise<void> => {
                         <div class="small text-white-50">${escapeHtml(produto.slug)}</div>
                     </td>
                     <td>${escapeHtml(produto.categoria)}</td>
-                    <td>${formatarDinheiroProduto(Number(produto.preco))}</td>
-                    <td>${Number(produto.estoque)}</td>
-                    <td>
-                        <span class="badge ${Number(produto.ativo) === 1 ? 'text-bg-success' : 'text-bg-secondary'}">
-                            ${Number(produto.ativo) === 1 ? 'Ativo' : 'Inativo'}
+                        <td>${formatarDinheiroProduto(produto.preco)}</td>
+                        <td>${produto.estoque}</td>
+                        <td>
+                            <span class="badge ${produto.permite_pedido ? 'text-bg-info' : 'text-bg-warning'}">
+                                ${produto.permite_pedido ? 'Pedido online' : 'Sob orçamento'}
+                            </span>
+                        </td>
+                        <td>
+                        <span class="badge ${produto.ativo ? 'text-bg-success' : 'text-bg-secondary'}">
+                            ${produto.ativo ? 'Ativo' : 'Inativo'}
                         </span>
                     </td>
                     <td class="text-end text-nowrap">
@@ -168,7 +188,7 @@ const carregarProdutos = async (): Promise<void> => {
         }).join('');
     } catch (erro) {
         tbody.innerHTML =
-            '<tr><td colspan="8" class="text-danger">Não foi possível carregar os produtos.</td></tr>';
+            '<tr><td colspan="9" class="text-danger">Não foi possível carregar os produtos.</td></tr>';
 
         mostrarAlertaProduto(
             erro instanceof Error ? erro.message : 'Erro ao carregar produtos.',
@@ -178,14 +198,15 @@ const carregarProdutos = async (): Promise<void> => {
 };
 
 const limparForm = (): void => {
-    const form = $('#produtoForm') as HTMLFormElement | null;
-    if (!form) return;
+    const form = $('#produtoForm');
+    if (!(form instanceof HTMLFormElement)) return;
 
     form.reset();
 
-    ($('#produtoId') as HTMLInputElement).value = '';
-    ($('#produtoAtivo') as HTMLInputElement).checked = true;
-    ($('#produtoEstoque') as HTMLInputElement).value = '0';
+    definirValor('#produtoId', '');
+    definirMarcado('#produtoAtivo', true);
+    definirMarcado('#produtoPermitePedido', false);
+    definirValor('#produtoEstoque', '0');
 
     const titulo = $('#produtoModalLabel');
     if (titulo) titulo.textContent = 'Novo produto';
@@ -201,25 +222,24 @@ const limparForm = (): void => {
 };
 
 const preencherForm = (produto: ProdutoAdmin): void => {
-    ($('#produtoId') as HTMLInputElement).value = String(produto.id_produto);
-    ($('#produtoNome') as HTMLInputElement).value = produto.nome;
-    ($('#produtoCategoria') as HTMLSelectElement).value = String(produto.id_categoria);
+    definirValor('#produtoId', String(produto.id_produto));
+    definirValor('#produtoNome', produto.nome);
+    definirValor('#produtoCategoria', String(produto.id_categoria));
 
-    ($('#produtoPreco') as HTMLInputElement).value =
-        Number(produto.preco).toLocaleString('pt-BR', {
+    definirValor('#produtoPreco',
+        produto.preco.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-        });
+        }));
 
-    ($('#produtoEstoque') as HTMLInputElement).value = String(produto.estoque);
+    definirValor('#produtoEstoque', String(produto.estoque));
 
     // Corrigido: Number("0") === 0 e Number("1") === 1.
     // Boolean("0") seria true, causando o switch sempre ligado ao editar.
-    ($('#produtoAtivo') as HTMLInputElement).checked =
-        Number(produto.ativo) === 1;
+    definirMarcado('#produtoAtivo', produto.ativo);
+    definirMarcado('#produtoPermitePedido', produto.permite_pedido);
 
-    ($('#produtoDescricao') as HTMLTextAreaElement).value =
-        produto.descricao ?? '';
+    definirValor('#produtoDescricao', produto.descricao ?? '');
 
     const titulo = $('#produtoModalLabel');
     if (titulo) titulo.textContent = `Editar produto #${produto.id_produto}`;
@@ -265,10 +285,10 @@ const renderImagensAtuais = (imagens: ProdutoImagem[]): void => {
 };
 
 const previewNovasImagens = (): void => {
-    const input = $('#produtoImagens') as HTMLInputElement | null;
+    const input = $('#produtoImagens');
     const container = $('#previewNovasImagens');
 
-    if (!input || !container) return;
+    if (!(input instanceof HTMLInputElement) || !container) return;
 
     container.innerHTML = '';
 
@@ -313,20 +333,25 @@ const abrirEditar = async (id: number): Promise<void> => {
     }
 };
 
-const salvarProduto = async (event: SubmitEvent): Promise<void> => {
+const salvarProduto = async (event: Event): Promise<void> => {
     event.preventDefault();
 
-    const form = $('#produtoForm') as HTMLFormElement | null;
-    const botao = $('#btnSalvarProduto') as HTMLButtonElement | null;
-    const produtoAtivo = $('#produtoAtivo') as HTMLInputElement | null;
+    const form = $('#produtoForm');
+    const botao = $('#btnSalvarProduto');
+    const produtoAtivo = $('#produtoAtivo');
+    const produtoPermitePedido = $('#produtoPermitePedido');
 
-    if (!form || !botao || !produtoAtivo) return;
+    if (!(form instanceof HTMLFormElement)
+        || !(botao instanceof HTMLButtonElement)
+        || !(produtoAtivo instanceof HTMLInputElement)
+        || !(produtoPermitePedido instanceof HTMLInputElement)) return;
 
     const formData = new FormData(form);
 
     // Checkbox desmarcado não entra no FormData automaticamente.
     // Forçamos sempre 1 ou 0 para o PHP receber o estado correto.
     formData.set('ativo', produtoAtivo.checked ? '1' : '0');
+    formData.set('permite_pedido', produtoPermitePedido.checked ? '1' : '0');
 
     botao.disabled = true;
     botao.innerHTML =
@@ -373,6 +398,12 @@ const excluirProduto = async (id: number, nome: string): Promise<void> => {
     const formData = new FormData();
     formData.set('acao', 'excluir');
     formData.set('id_produto', String(id));
+    const csrf = $('#produtoCsrfToken');
+    if (!(csrf instanceof HTMLInputElement) || csrf.value === '') {
+        mostrarAlertaProduto('Sua sessão expirou. Atualize a página e tente novamente.', 'danger');
+        return;
+    }
+    formData.set('csrf_token', csrf.value);
 
     try {
         const resultado = await window.drozApi.postFormData<unknown>(
@@ -403,19 +434,15 @@ const ligarEventos = (): void => {
     $('#btnNovoProduto')?.addEventListener('click', abrirNovo);
 
     $('#produtoForm')?.addEventListener('submit', (event) => {
-        void salvarProduto(event as SubmitEvent);
+        void salvarProduto(event);
     });
 
     $('#produtoImagens')?.addEventListener('change', previewNovasImagens);
 
     $('#buscaProduto')?.addEventListener('input', () => {
-        window.clearTimeout(
-            (window as unknown as { produtoSearchTimer?: number })
-                .produtoSearchTimer
-        );
+        window.clearTimeout(window.produtoSearchTimer);
 
-        (window as unknown as { produtoSearchTimer?: number })
-            .produtoSearchTimer = window.setTimeout(() => {
+        window.produtoSearchTimer = window.setTimeout(() => {
                 void carregarProdutos();
             }, 350);
     });
@@ -425,7 +452,8 @@ const ligarEventos = (): void => {
     });
 
     $('#produtosTableBody')?.addEventListener('click', (event) => {
-        const alvo = event.target as HTMLElement;
+        const alvo = event.target;
+        if (!(alvo instanceof Element)) return;
 
         const editar = alvo.closest<HTMLElement>(
             '[data-editar-produto]'
@@ -456,9 +484,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const ModalClass = window.bootstrap?.Modal;
 
         if (ModalClass) {
-            const elemento = $('#produtoModal') as HTMLElement | null;
+            const elemento = $('#produtoModal');
 
-            if (elemento) {
+            if (elemento instanceof HTMLElement) {
                 modal = new ModalClass(elemento);
             }
         }

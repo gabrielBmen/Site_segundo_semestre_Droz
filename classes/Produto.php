@@ -9,6 +9,7 @@ class Produto
         public readonly string $descricao,
         public readonly float $preco,
         public readonly int $estoque,
+        public readonly bool $permitePedido,
         public readonly bool $ativo,
         public readonly ?string $slug = null,
     ) {
@@ -23,6 +24,7 @@ class Produto
             'descricao' => $this->descricao,
             'preco' => $this->preco,
             'estoque' => $this->estoque,
+            'permite_pedido' => $this->permitePedido,
             'ativo' => $this->ativo,
             'slug' => $this->slug,
         ];

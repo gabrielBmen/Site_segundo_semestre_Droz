@@ -2,7 +2,14 @@ type ApiResult<T> = {
     sucesso: boolean;
     mensagem?: string;
     dados?: T;
-    [key: string]: unknown;
+    redirect?: string;
+    id_produto?: number;
+    usuario?: {
+        id_usuario: number;
+        nome: string;
+        email: string;
+        tipo: 'cliente' | 'admin';
+    };
 };
 
 type ApiClient = {
