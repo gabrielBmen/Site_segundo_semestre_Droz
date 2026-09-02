@@ -31,7 +31,10 @@ try {
         (string) ($dados['email'] ?? ''),
         (string) ($dados['senha'] ?? ''),
         (string) ($dados['confirmar_senha'] ?? ''),
-        (string) ($dados['telefone'] ?? '')
+        (string) ($dados['telefone'] ?? ''),
+        (string) ($dados['cpf'] ?? ''),
+        (string) ($dados['cnpj'] ?? ''),
+        (string) ($dados['cep'] ?? '')
     );
 
     http_response_code($resultado['status']);

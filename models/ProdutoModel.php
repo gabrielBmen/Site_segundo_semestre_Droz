@@ -130,7 +130,7 @@ class ProdutoModel
         string $nome,
         string $slug,
         string $descricao,
-        float $preco,
+        ?float $preco,
         int $estoque,
         bool $permitePedido,
         bool $ativo
@@ -161,7 +161,7 @@ class ProdutoModel
         int $idCategoria,
         string $nome,
         string $descricao,
-        float $preco,
+        ?float $preco,
         int $estoque,
         bool $permitePedido,
         bool $ativo

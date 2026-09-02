@@ -91,8 +91,9 @@ include __DIR__ . '/includes/header.php';
                         </div>
 
                         <div class="col-md-4">
-                            <label for="produtoPreco" class="form-label">Preço (R$) *</label>
-                            <input type="text" inputmode="decimal" class="form-control bg-dark text-white border-secondary" id="produtoPreco" name="preco" placeholder="0,00" required>
+                            <label for="produtoPreco" class="form-label">Preço (R$)</label>
+                            <input type="text" inputmode="decimal" class="form-control bg-dark text-white border-secondary" id="produtoPreco" name="preco" placeholder="0,00">
+                            <div id="produtoPrecoAjuda" class="form-text text-white-50">Disponível apenas para produtos com pedido online.</div>
                         </div>
 
                         <div class="col-md-4">
@@ -108,7 +109,7 @@ include __DIR__ . '/includes/header.php';
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" role="switch" id="produtoPermitePedido" name="permite_pedido" value="1">
                                 <label class="form-check-label" for="produtoPermitePedido">Disponível para pedido online</label>
-                                <div class="form-text text-white-50">Máquinas e serviços devem ficar desmarcados para receberem orçamento.</div>
+                                <div class="form-text text-white-50">Produtos sob orçamento não possuem preço cadastrado.</div>
                             </div>
                         </div>
 
@@ -148,6 +149,6 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <script src="/assets/js/api.js?v=2"></script>
-<script src="/assets/js/admin-produtos.js?v=3"></script>
+<script src="/assets/js/admin-produtos.js?v=4"></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

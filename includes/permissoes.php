@@ -2,9 +2,9 @@
 
 require_once __DIR__ . '/auth.php';
 
-function podeVerPreco(): bool
+function podeVerPreco(array $produto): bool
 {
-    return usuarioLogado();
+    return usuarioLogado() && (bool) ($produto['permite_pedido'] ?? false);
 }
 
 function podeVerDetalhes(): bool

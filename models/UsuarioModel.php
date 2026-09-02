@@ -9,9 +9,10 @@ class UsuarioModel
     public function buscarPorEmail(string $email): ?array
     {
         $sql = "
-            SELECT id_usuario, nome, email, senha, tipo, ativo
-            FROM usuarios
-            WHERE email = :email
+            SELECT u.id_usuario, u.nome, u.email, u.senha, u.tipo, u.ativo, c.cpf, c.cnpj
+            FROM usuarios u
+            LEFT JOIN clientes c ON c.id_usuario = u.id_usuario
+            WHERE u.email = :email
             LIMIT 1
         ";
 
@@ -44,7 +45,10 @@ class UsuarioModel
         string $nome,
         string $email,
         string $senha,
-        string $telefone = ''
+        string $telefone = '',
+        string $cpf = '',
+        string $cnpj = '',
+        string $cep = ''
     ): int {
         try {
             $this->pdo->beginTransaction();
@@ -64,8 +68,8 @@ class UsuarioModel
             $idUsuario = (int) $this->pdo->lastInsertId();
 
             $sqlCliente = "
-                INSERT INTO clientes (id_usuario, nome, email, telefone)
-                VALUES (:id_usuario, :nome, :email, :telefone)
+                INSERT INTO clientes (id_usuario, nome, email, telefone, cep, cpf, cnpj)
+                VALUES (:id_usuario, :nome, :email, :telefone, :cep, :cpf, :cnpj)
             ";
 
             $stmtCliente = $this->pdo->prepare($sqlCliente);
@@ -74,6 +78,9 @@ class UsuarioModel
                 ':nome' => $nome,
                 ':email' => $email,
                 ':telefone' => $telefone !== '' ? $telefone : null,
+                ':cep' => $cep,
+                ':cpf' => $cpf,
+                ':cnpj' => $cnpj,
             ]);
 
             $this->pdo->commit();
@@ -91,7 +98,7 @@ class UsuarioModel
     public function buscarClientePorUsuario(int $idUsuario): ?array
     {
         $sql = "
-            SELECT id_cliente, id_usuario, nome, email, telefone
+            SELECT id_cliente, id_usuario, nome, email, telefone, cep, cpf, cnpj
             FROM clientes
             WHERE id_usuario = :id_usuario
             LIMIT 1
@@ -118,6 +125,9 @@ class UsuarioModel
                 u.data_criacao,
                 c.id_cliente,
                 c.telefone,
+                c.cep,
+                c.cpf,
+                c.cnpj,
                 COUNT(DISTINCT p.id_pedido) AS total_pedidos,
                 COALESCE(SUM(CASE WHEN p.status <> 'cancelado' THEN p.valor_total ELSE 0 END), 0) AS valor_pedidos
              FROM usuarios u
@@ -125,7 +135,7 @@ class UsuarioModel
              LEFT JOIN pedidos p ON p.id_cliente = c.id_cliente
              WHERE u.id_usuario = :id_usuario
              GROUP BY u.id_usuario, u.nome, u.email, u.tipo, u.ativo, u.foto_perfil,
-                      u.data_criacao, c.id_cliente, c.telefone
+                      u.data_criacao, c.id_cliente, c.telefone, c.cep, c.cpf, c.cnpj
              LIMIT 1"
         );
         $stmt->execute([':id_usuario' => $idUsuario]);
@@ -134,13 +144,14 @@ class UsuarioModel
         return $perfil ?: null;
     }
 
-    public function atualizarTelefoneDoCliente(int $idUsuario, ?string $telefone): bool
+    public function atualizarDadosDoCliente(int $idUsuario, ?string $telefone, string $cep): bool
     {
         $stmt = $this->pdo->prepare(
-            'UPDATE clientes SET telefone = :telefone WHERE id_usuario = :id_usuario'
+            'UPDATE clientes SET telefone = :telefone, cep = :cep WHERE id_usuario = :id_usuario'
         );
         $stmt->execute([
             ':telefone' => $telefone,
+            ':cep' => $cep,
             ':id_usuario' => $idUsuario,
         ]);
 
@@ -171,11 +182,14 @@ class UsuarioModel
                 u.ativo,
                 u.data_criacao,
                 c.telefone,
+                c.cep,
+                c.cpf,
+                c.cnpj,
                 COUNT(p.id_pedido) AS total_pedidos
             FROM usuarios u
             LEFT JOIN clientes c ON c.id_usuario = u.id_usuario
             LEFT JOIN pedidos p ON p.id_cliente = c.id_cliente
-            GROUP BY u.id_usuario, u.nome, u.email, u.tipo, u.ativo, u.data_criacao, c.telefone
+            GROUP BY u.id_usuario, u.nome, u.email, u.tipo, u.ativo, u.data_criacao, c.telefone, c.cep, c.cpf, c.cnpj
             ORDER BY u.id_usuario ASC
         ";
 
@@ -185,7 +199,7 @@ class UsuarioModel
     public function buscarCompletoPorId(int $idUsuario): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT u.id_usuario, u.nome, u.email, u.tipo, u.ativo, c.telefone
+            'SELECT u.id_usuario, u.nome, u.email, u.tipo, u.ativo, c.telefone, c.cep, c.cpf, c.cnpj
              FROM usuarios u
              LEFT JOIN clientes c ON c.id_usuario = u.id_usuario
              WHERE u.id_usuario = :id_usuario
@@ -195,6 +209,16 @@ class UsuarioModel
         $usuario = $stmt->fetch();
 
         return $usuario ?: null;
+    }
+
+    public function cpfEmUso(string $cpf, ?int $ignorarIdUsuario = null): bool
+    {
+        return $this->documentoEmUso('cpf', $cpf, $ignorarIdUsuario);
+    }
+
+    public function cnpjEmUso(string $cnpj, ?int $ignorarIdUsuario = null): bool
+    {
+        return $this->documentoEmUso('cnpj', $cnpj, $ignorarIdUsuario);
     }
 
     public function contarAdminsAtivos(): int
@@ -223,7 +247,10 @@ class UsuarioModel
         string $senha,
         string $tipo,
         bool $ativo,
-        string $telefone
+        string $telefone,
+        string $cpf = '',
+        string $cnpj = '',
+        string $cep = ''
     ): int {
         try {
             $this->pdo->beginTransaction();
@@ -242,14 +269,17 @@ class UsuarioModel
 
             if ($tipo === 'cliente') {
                 $stmtCliente = $this->pdo->prepare(
-                    'INSERT INTO clientes (id_usuario, nome, email, telefone)
-                     VALUES (:id_usuario, :nome, :email, :telefone)'
+                    'INSERT INTO clientes (id_usuario, nome, email, telefone, cep, cpf, cnpj)
+                     VALUES (:id_usuario, :nome, :email, :telefone, :cep, :cpf, :cnpj)'
                 );
                 $stmtCliente->execute([
                     ':id_usuario' => $idUsuario,
                     ':nome' => $nome,
                     ':email' => $email,
                     ':telefone' => $telefone !== '' ? $telefone : null,
+                    ':cep' => $cep,
+                    ':cpf' => $cpf,
+                    ':cnpj' => $cnpj,
                 ]);
             }
 
@@ -268,7 +298,10 @@ class UsuarioModel
         ?string $senha,
         string $tipo,
         bool $ativo,
-        string $telefone
+        string $telefone,
+        string $cpf = '',
+        string $cnpj = '',
+        string $cep = ''
     ): void {
         try {
             $this->pdo->beginTransaction();
@@ -291,25 +324,32 @@ class UsuarioModel
             $cliente = $this->buscarClientePorUsuario($idUsuario);
             if ($tipo === 'cliente' && $cliente) {
                 $stmtCliente = $this->pdo->prepare(
-                    'UPDATE clientes SET nome = :nome, email = :email, telefone = :telefone
+                    'UPDATE clientes
+                     SET nome = :nome, email = :email, telefone = :telefone, cep = :cep, cpf = :cpf, cnpj = :cnpj
                      WHERE id_usuario = :id_usuario'
                 );
                 $stmtCliente->execute([
                     ':nome' => $nome,
                     ':email' => $email,
                     ':telefone' => $telefone !== '' ? $telefone : null,
+                    ':cep' => $cep,
+                    ':cpf' => $cpf,
+                    ':cnpj' => $cnpj,
                     ':id_usuario' => $idUsuario,
                 ]);
             } elseif ($tipo === 'cliente') {
                 $stmtCliente = $this->pdo->prepare(
-                    'INSERT INTO clientes (id_usuario, nome, email, telefone)
-                     VALUES (:id_usuario, :nome, :email, :telefone)'
+                    'INSERT INTO clientes (id_usuario, nome, email, telefone, cep, cpf, cnpj)
+                     VALUES (:id_usuario, :nome, :email, :telefone, :cep, :cpf, :cnpj)'
                 );
                 $stmtCliente->execute([
                     ':id_usuario' => $idUsuario,
                     ':nome' => $nome,
                     ':email' => $email,
                     ':telefone' => $telefone !== '' ? $telefone : null,
+                    ':cep' => $cep,
+                    ':cpf' => $cpf,
+                    ':cnpj' => $cnpj,
                 ]);
             } elseif ($cliente) {
                 $stmtCliente = $this->pdo->prepare('DELETE FROM clientes WHERE id_usuario = :id_usuario');
@@ -328,5 +368,26 @@ class UsuarioModel
         $stmt = $this->pdo->prepare('DELETE FROM usuarios WHERE id_usuario = :id_usuario');
         $stmt->execute([':id_usuario' => $idUsuario]);
         return $stmt->rowCount() > 0;
+    }
+
+    private function documentoEmUso(string $coluna, string $valor, ?int $ignorarIdUsuario): bool
+    {
+        if (!in_array($coluna, ['cpf', 'cnpj'], true)) {
+            throw new InvalidArgumentException('Documento inválido.');
+        }
+
+        $sql = "SELECT 1 FROM clientes WHERE {$coluna} = :valor";
+        $params = [':valor' => $valor];
+
+        if ($ignorarIdUsuario !== null && $ignorarIdUsuario > 0) {
+            $sql .= ' AND id_usuario <> :id_usuario';
+            $params[':id_usuario'] = $ignorarIdUsuario;
+        }
+
+        $sql .= ' LIMIT 1';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return (bool) $stmt->fetchColumn();
     }
 }

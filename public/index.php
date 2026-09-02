@@ -21,6 +21,7 @@ $sql = "
         p.descricao,
         p.preco,
         p.estoque,
+        p.permite_pedido,
         p.ativo,
         c.nome AS categoria,
         i.caminho AS imagem
@@ -85,8 +86,10 @@ $produtoCsr1 = buscarProdutoPorSlug(
 // =========================================================
 
 $precoBase = $produtoCsr1
-    ? $produtoCsr1['preco']
-    : 0;
+    && (bool) $produtoCsr1['permite_pedido']
+    && $produtoCsr1['preco'] !== null
+    ? (float) $produtoCsr1['preco']
+    : 0.0;
 
 $descontoExemplo = aplicarDesconto(
     $precoBase,
@@ -596,7 +599,15 @@ include __DIR__ . '/../includes/header.php';
 
                                 <div class="product-price-area">
 
-                                    <?php if (usuarioLogado()): ?>
+                                    <?php if (!(bool) $produto['permite_pedido']): ?>
+
+                                        <div class="price">Sob orçamento</div>
+
+                                        <small class="text-white-50">
+                                            Solicite uma proposta personalizada.
+                                        </small>
+
+                                    <?php elseif (usuarioLogado()): ?>
 
                                         <div class="price">
                                             <?= moeda($produto['preco']) ?>

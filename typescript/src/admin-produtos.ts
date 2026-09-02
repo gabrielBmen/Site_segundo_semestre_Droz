@@ -12,7 +12,7 @@ interface ProdutoAdmin {
     nome: string;
     slug: string;
     descricao: string | null;
-    preco: number;
+    preco: number | null;
     estoque: number;
     permite_pedido: boolean;
     ativo: boolean;
@@ -45,10 +45,14 @@ const definirMarcado = (selector: string, marcado: boolean): void => {
     if (campo instanceof HTMLInputElement) campo.checked = marcado;
 };
 
-const formatarDinheiroProduto = (valor: number): string => new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-}).format(Number.isFinite(valor) ? valor : 0);
+const formatarDinheiroProduto = (valor: number | null): string => {
+    if (valor === null || !Number.isFinite(valor)) return '—';
+
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    }).format(valor);
+};
 
 const escapeHtml = (valor: unknown): string => {
     const div = document.createElement('div');
@@ -65,6 +69,29 @@ let categorias: CategoriaAdmin[] = [];
 type ModalProduto = { show(): void; hide(): void; };
 
 let modal: ModalProduto | null = null;
+
+const sincronizarCampoPreco = (): void => {
+    const campoPreco = $('#produtoPreco');
+    const permitePedido = $('#produtoPermitePedido');
+    const ajuda = $('#produtoPrecoAjuda');
+
+    if (!(campoPreco instanceof HTMLInputElement)
+        || !(permitePedido instanceof HTMLInputElement)) return;
+
+    const pedidoOnline = permitePedido.checked;
+    campoPreco.disabled = !pedidoOnline;
+    campoPreco.required = pedidoOnline;
+
+    if (!pedidoOnline) {
+        campoPreco.value = '';
+    }
+
+    if (ajuda) {
+        ajuda.textContent = pedidoOnline
+            ? 'Informe o preço que será usado nos pedidos online.'
+            : 'Produto sob orçamento: não possui preço cadastrado.';
+    }
+};
 
 const mostrarAlertaProduto = (
     mensagem: string,
@@ -163,7 +190,7 @@ const carregarProdutos = async (): Promise<void> => {
                         <div class="small text-white-50">${escapeHtml(produto.slug)}</div>
                     </td>
                     <td>${escapeHtml(produto.categoria)}</td>
-                        <td>${formatarDinheiroProduto(produto.preco)}</td>
+                        <td>${produto.permite_pedido ? formatarDinheiroProduto(produto.preco) : 'Sob orçamento'}</td>
                         <td>${produto.estoque}</td>
                         <td>
                             <span class="badge ${produto.permite_pedido ? 'text-bg-info' : 'text-bg-warning'}">
@@ -207,6 +234,7 @@ const limparForm = (): void => {
     definirMarcado('#produtoAtivo', true);
     definirMarcado('#produtoPermitePedido', false);
     definirValor('#produtoEstoque', '0');
+    sincronizarCampoPreco();
 
     const titulo = $('#produtoModalLabel');
     if (titulo) titulo.textContent = 'Novo produto';
@@ -226,8 +254,7 @@ const preencherForm = (produto: ProdutoAdmin): void => {
     definirValor('#produtoNome', produto.nome);
     definirValor('#produtoCategoria', String(produto.id_categoria));
 
-    definirValor('#produtoPreco',
-        produto.preco.toLocaleString('pt-BR', {
+    definirValor('#produtoPreco', produto.preco === null ? '' : produto.preco.toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }));
@@ -238,6 +265,7 @@ const preencherForm = (produto: ProdutoAdmin): void => {
     // Boolean("0") seria true, causando o switch sempre ligado ao editar.
     definirMarcado('#produtoAtivo', produto.ativo);
     definirMarcado('#produtoPermitePedido', produto.permite_pedido);
+    sincronizarCampoPreco();
 
     definirValor('#produtoDescricao', produto.descricao ?? '');
 
@@ -438,6 +466,8 @@ const ligarEventos = (): void => {
     });
 
     $('#produtoImagens')?.addEventListener('change', previewNovasImagens);
+
+    $('#produtoPermitePedido')?.addEventListener('change', sincronizarCampoPreco);
 
     $('#buscaProduto')?.addEventListener('input', () => {
         window.clearTimeout(window.produtoSearchTimer);

@@ -56,6 +56,23 @@ include __DIR__ . '/../includes/header.php';
                         </div>
 
                         <div class="mb-3">
+                            <label for="cepCadastro" class="form-label">CEP</label>
+                            <input type="text" id="cepCadastro" name="cep" class="form-control" inputmode="numeric" maxlength="9" placeholder="00000-000" required>
+                            <div class="form-text text-white-50">Usamos o CEP para identificar a região de atendimento da sua empresa.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="cpfCadastro" class="form-label">CPF do responsável</label>
+                            <input type="text" id="cpfCadastro" name="cpf" class="form-control" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="cnpjCadastro" class="form-label">CNPJ da empresa</label>
+                            <input type="text" id="cnpjCadastro" name="cnpj" class="form-control" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" required>
+                            <div class="form-text text-white-50">O CPF e o CNPJ são obrigatórios para liberar o acesso à conta.</div>
+                        </div>
+
+                        <div class="mb-3">
                             <label for="senhaCadastro" class="form-label">Senha</label>
                             <input type="password" id="senhaCadastro" name="senha" class="form-control" autocomplete="new-password" minlength="8" required>
                         </div>
@@ -84,6 +101,6 @@ include __DIR__ . '/../includes/header.php';
 </section>
 
 <script src="assets/js/api.js?v=1"></script>
-<script src="assets/js/cadastro.js?v=3"></script>
+<script src="assets/js/cadastro.js?v=5"></script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

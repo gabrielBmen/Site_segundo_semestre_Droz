@@ -25,6 +25,8 @@ a { text-decoration: none; }
    COMPONENTES BASE & NAVEGAÇÃO
 
    HIERARQUIA DE CAMADAS:
+   4001 = painel lateral da conta
+   4000 = fundo escurecido do painel lateral
    3000 = topbar
    2900 = navegação principal
    100  = filtro do catálogo
@@ -624,11 +626,18 @@ section { position: relative; }
 
 .account-offcanvas {
     --bs-offcanvas-width: min(390px, 100vw);
+    --bs-offcanvas-zindex: 4001;
+    z-index: 4001;
     border-left: 1px solid rgba(151, 181, 213, .22) !important;
     background:
         radial-gradient(circle at 85% 5%, rgba(0, 199, 187, .14), transparent 32%),
         #071421;
     color: #edf6ff;
+}
+
+.offcanvas-backdrop {
+    --bs-backdrop-zindex: 4000;
+    z-index: 4000;
 }
 
 .account-offcanvas .offcanvas-header {

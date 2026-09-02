@@ -54,9 +54,9 @@ class ProdutoController
         $idCategoria = (int) ($dados['id_categoria'] ?? 0);
         $nome = trim((string) ($dados['nome'] ?? ''));
         $descricao = trim((string) ($dados['descricao'] ?? ''));
-        $preco = $this->normalizarDecimal($dados['preco'] ?? 0);
         $estoque = (int) ($dados['estoque'] ?? 0);
         $permitePedido = $this->normalizarBoolean($dados['permite_pedido'] ?? false);
+        $preco = $permitePedido ? $this->normalizarDecimal($dados['preco'] ?? '') : null;
         $ativo = $this->normalizarBoolean($dados['ativo'] ?? true);
 
         if ($idCategoria <= 0) {
@@ -67,8 +67,8 @@ class ProdutoController
             return $this->erro('Informe um nome entre 1 e 120 caracteres.', 422);
         }
 
-        if ($preco < 0) {
-            return $this->erro('O preço não pode ser negativo.', 422);
+        if ($permitePedido && ($preco === null || $preco < 0)) {
+            return $this->erro('Informe um preço válido para produtos disponíveis para pedido online.', 422);
         }
 
         if ($estoque < 0) {
@@ -247,7 +247,7 @@ class ProdutoController
         ];
     }
 
-    private function normalizarDecimal(mixed $valor): float
+    private function normalizarDecimal(mixed $valor): ?float
     {
         if (is_int($valor) || is_float($valor)) {
             return (float) $valor;
@@ -264,7 +264,7 @@ class ProdutoController
             $texto = str_replace(',', '.', $texto);
         }
 
-        return is_numeric($texto) ? (float) $texto : -1;
+        return $texto !== '' && is_numeric($texto) ? (float) $texto : null;
     }
 
     private function normalizarBoolean(mixed $valor): bool
@@ -426,9 +426,11 @@ class ProdutoController
     {
         $produto['id_produto'] = (int) $produto['id_produto'];
         $produto['id_categoria'] = (int) $produto['id_categoria'];
-        $produto['preco'] = (float) $produto['preco'];
         $produto['estoque'] = (int) $produto['estoque'];
         $produto['permite_pedido'] = (bool) $produto['permite_pedido'];
+        $produto['preco'] = $produto['permite_pedido'] && $produto['preco'] !== null
+            ? (float) $produto['preco']
+            : null;
         $produto['ativo'] = (bool) $produto['ativo'];
 
         if (isset($produto['imagens']) && is_array($produto['imagens'])) {

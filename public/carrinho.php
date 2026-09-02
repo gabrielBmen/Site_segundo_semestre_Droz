@@ -113,7 +113,10 @@ foreach ($_SESSION['carrinho'] as $idProduto => $quantidade) {
         unset($_SESSION['carrinho'][$idProduto]);
         continue;
     }
-    $valorTotal += (float) $itensPorId[(int) $idProduto]['preco'] * (int) $quantidade;
+    $item = $itensPorId[(int) $idProduto];
+    if ((bool) $item['permite_pedido'] && $item['preco'] !== null) {
+        $valorTotal += (float) $item['preco'] * (int) $quantidade;
+    }
 }
 
 $tituloPagina = 'Meu pedido';
@@ -176,11 +179,11 @@ include __DIR__ . '/../includes/header.php';
                                             <div class="small text-warning mt-1">Não está mais disponível para pedido online.</div>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= moeda($item['preco']) ?></td>
+                                    <td><?= (bool) $item['permite_pedido'] ? moeda($item['preco']) : 'Sob orçamento' ?></td>
                                     <td>
                                         <input type="number" class="form-control" name="quantidades[<?= (int) $idProduto ?>]" min="0" max="<?= max(0, (int) $item['estoque']) ?>" value="<?= $quantidade ?>" <?= !$disponivel ? 'disabled' : '' ?>>
                                     </td>
-                                    <td class="fw-semibold"><?= moeda((float) $item['preco'] * $quantidade) ?></td>
+                                    <td class="fw-semibold"><?= (bool) $item['permite_pedido'] ? moeda((float) $item['preco'] * $quantidade) : '—' ?></td>
                                     <td class="text-end">
                                         <button class="btn btn-sm btn-outline-danger" type="submit" name="quantidades[<?= (int) $idProduto ?>]" value="0">Remover</button>
                                     </td>

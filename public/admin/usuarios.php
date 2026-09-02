@@ -19,6 +19,9 @@ $usuarioEdicao = [
     'nome' => '',
     'email' => '',
     'telefone' => '',
+    'cep' => '',
+    'cpf' => '',
+    'cnpj' => '',
     'tipo' => 'cliente',
     'ativo' => 1,
 ];
@@ -75,7 +78,6 @@ include __DIR__ . '/includes/header.php';
 <div class="row g-4">
     <div class="col-xl-4">
         <div class="dashboard-card">
-            <div class="text-uppercase small text-white-50">Terceiro CRUD completo</div>
             <h2 class="h5 mb-3"><?= (int) $usuarioEdicao['id_usuario'] > 0 ? 'Editar usuário' : 'Novo usuário' ?></h2>
 
             <form method="POST">
@@ -94,6 +96,20 @@ include __DIR__ . '/includes/header.php';
                 <div class="mb-3">
                     <label for="telefone" class="form-label">Telefone do cliente</label>
                     <input id="telefone" name="telefone" class="form-control bg-dark text-white border-secondary" maxlength="30" value="<?= e((string) ($usuarioEdicao['telefone'] ?? '')) ?>" placeholder="(11) 99999-9999">
+                </div>
+                <div class="mb-3">
+                    <label for="cep" class="form-label">CEP</label>
+                    <input id="cep" name="cep" class="form-control bg-dark text-white border-secondary" inputmode="numeric" maxlength="9" value="<?= e((string) ($usuarioEdicao['cep'] ?? '')) ?>" placeholder="00000-000">
+                    <div class="form-text text-white-50">Obrigatório para usuários do tipo cliente.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="cpf" class="form-label">CPF do responsável</label>
+                    <input id="cpf" name="cpf" class="form-control bg-dark text-white border-secondary" inputmode="numeric" maxlength="14" value="<?= e((string) ($usuarioEdicao['cpf'] ?? '')) ?>" placeholder="000.000.000-00">
+                </div>
+                <div class="mb-3">
+                    <label for="cnpj" class="form-label">CNPJ da empresa</label>
+                    <input id="cnpj" name="cnpj" class="form-control bg-dark text-white border-secondary" inputmode="numeric" maxlength="18" value="<?= e((string) ($usuarioEdicao['cnpj'] ?? '')) ?>" placeholder="00.000.000/0000-00">
+                    <div class="form-text text-white-50">CPF e CNPJ são obrigatórios para usuários do tipo cliente.</div>
                 </div>
                 <div class="mb-3">
                     <label for="tipo" class="form-label">Tipo de acesso</label>

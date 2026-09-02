@@ -67,7 +67,9 @@ if (!function_exists('filtrarProdutosPorPreco')) {
         foreach ($lista as $produto) {
 
             if (
-                isset($produto['preco']) &&
+                !empty($produto['permite_pedido']) &&
+                array_key_exists('preco', $produto) &&
+                $produto['preco'] !== null &&
                 $produto['preco'] >= $minimo
             ) {
 
@@ -124,10 +126,8 @@ if (!function_exists('validarListaProdutos')) {
         foreach ($lista as $produto) {
 
             if (
-                !isset(
-                    $produto['nome'],
-                    $produto['preco']
-                )
+                !isset($produto['nome'], $produto['permite_pedido']) ||
+                !array_key_exists('preco', $produto)
             ) {
 
                 return false;
@@ -142,9 +142,14 @@ if (!function_exists('validarListaProdutos')) {
 
             }
 
-            if (
-                (float)$produto['preco'] < 0
-            ) {
+            $permitePedido = (bool) $produto['permite_pedido'];
+            $preco = $produto['preco'];
+
+            if ($permitePedido && ($preco === null || !is_numeric($preco) || (float) $preco < 0)) {
+                return false;
+            }
+
+            if (!$permitePedido && $preco !== null) {
 
                 return false;
 

@@ -6,8 +6,8 @@ USE droz_robotica;
 INSERT INTO usuarios (nome, email, senha, tipo, ativo)
 VALUES ('Cliente Demo', 'cliente.demo@drozrobotica.com', '$2y$12$Y8qxTQ2jVTdNaVSZdjmt6.T.A0QBEEXxJSjNjojerYE6m5a/X3x0u', 'cliente', TRUE);
 
-INSERT INTO clientes (id_usuario, nome, email, telefone)
-SELECT id_usuario, nome, email, '(44) 99999-0000'
+INSERT INTO clientes (id_usuario, nome, email, telefone, cep, cpf, cnpj)
+SELECT id_usuario, nome, email, '(44) 99999-0000', '87300000', '12345678909', '11222333000181'
 FROM usuarios
 WHERE email = 'cliente.demo@drozrobotica.com'
 AND NOT EXISTS (SELECT 1 FROM clientes c WHERE c.email = 'cliente.demo@drozrobotica.com');

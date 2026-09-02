@@ -423,7 +423,12 @@ include __DIR__ . '/../includes/header.php';
                             <div class="d-flex justify-content-between align-items-center mt-3 gap-3">
 
                                 <div>
-                                    <?php if (usuarioLogado()): ?>
+                                    <?php if (!(bool) $produto['permite_pedido']): ?>
+                                        <div class="price">Sob orçamento</div>
+                                        <small class="text-white-50">
+                                            Solicite uma proposta personalizada.
+                                        </small>
+                                    <?php elseif (usuarioLogado()): ?>
                                         <div class="price">
                                             <?= moeda($produto['preco']) ?>
                                         </div>
@@ -515,7 +520,9 @@ include __DIR__ . '/../includes/header.php';
 
 
                             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                                <?php if (usuarioLogado()): ?>
+                                <?php if (!(bool) $destaquesFiltrados['permite_pedido']): ?>
+                                    <span class="display-6 fw-bold">Sob orçamento</span>
+                                <?php elseif (usuarioLogado()): ?>
                                     <span class="display-6 fw-bold">
                                         <?= moeda($destaquesFiltrados['preco']) ?>
                                     </span>

@@ -98,6 +98,10 @@ class PedidoModel
                     throw new RuntimeException('Um item do pedido não está mais disponível para compra online.');
                 }
 
+                if ($produto['preco'] === null) {
+                    throw new RuntimeException('Um item do pedido não possui preço disponível para compra online.');
+                }
+
                 if ($quantidade > (int) $produto['estoque']) {
                     throw new RuntimeException('Estoque insuficiente para “' . $produto['nome'] . '”.');
                 }

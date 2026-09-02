@@ -28,13 +28,14 @@ class LoginController
             ];
         }
 
-        $usuario = $this->login->autenticar($email, $senha);
+        $autenticacao = $this->login->autenticar($email, $senha);
+        $usuario = $autenticacao['usuario'] ?? null;
 
         if (!$usuario) {
             return [
                 'sucesso' => false,
-                'mensagem' => 'E-mail ou senha inválidos.',
-                'status' => 401,
+                'mensagem' => $autenticacao['mensagem'] ?? 'E-mail ou senha inválidos.',
+                'status' => isset($autenticacao['mensagem']) ? 403 : 401,
             ];
         }
 

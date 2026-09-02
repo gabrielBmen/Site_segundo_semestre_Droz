@@ -6,7 +6,65 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 function usuarioLogado(): bool
 {
-    return isset($_SESSION['usuario']['id_usuario']);
+    static $sessaoVerificada = false;
+    static $usuarioAutenticado = false;
+
+    if ($sessaoVerificada) {
+        return $usuarioAutenticado;
+    }
+
+    $sessaoVerificada = true;
+    $idUsuario = filter_var(
+        $_SESSION['usuario']['id_usuario'] ?? null,
+        FILTER_VALIDATE_INT,
+        ['options' => ['min_range' => 1]]
+    );
+    $emailSessao = mb_strtolower(trim((string) ($_SESSION['usuario']['email'] ?? '')));
+
+    if ($idUsuario === false || !filter_var($emailSessao, FILTER_VALIDATE_EMAIL)) {
+        unset($_SESSION['usuario']);
+        return false;
+    }
+
+    try {
+        global $pdo;
+
+        if (!isset($pdo) || !($pdo instanceof PDO)) {
+            require_once __DIR__ . '/../config/conexao.php';
+        }
+
+        $stmt = $pdo->prepare(
+            'SELECT id_usuario, nome, email, tipo
+             FROM usuarios
+             WHERE id_usuario = :id_usuario
+               AND email = :email
+               AND ativo = TRUE
+             LIMIT 1'
+        );
+        $stmt->execute([
+            ':id_usuario' => $idUsuario,
+            ':email' => $emailSessao,
+        ]);
+        $usuario = $stmt->fetch();
+
+        if (!$usuario) {
+            unset($_SESSION['usuario'], $_SESSION['carrinho']);
+            return false;
+        }
+
+        $_SESSION['usuario'] = [
+            'id_usuario' => (int) $usuario['id_usuario'],
+            'nome' => $usuario['nome'],
+            'email' => $usuario['email'],
+            'tipo' => $usuario['tipo'],
+        ];
+        $usuarioAutenticado = true;
+
+        return true;
+    } catch (Throwable) {
+        unset($_SESSION['usuario'], $_SESSION['carrinho']);
+        return false;
+    }
 }
 
 function usuarioAtual(): ?array

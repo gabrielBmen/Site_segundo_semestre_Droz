@@ -7,7 +7,7 @@ class Produto
         public readonly int $idCategoria,
         public readonly string $nome,
         public readonly string $descricao,
-        public readonly float $preco,
+        public readonly ?float $preco,
         public readonly int $estoque,
         public readonly bool $permitePedido,
         public readonly bool $ativo,

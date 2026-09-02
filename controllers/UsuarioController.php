@@ -14,11 +14,17 @@ class UsuarioController
         string $email,
         string $senha,
         string $confirmarSenha,
-        string $telefone = ''
+        string $telefone = '',
+        string $cpf = '',
+        string $cnpj = '',
+        string $cep = ''
     ): array {
         $nome = trim($nome);
         $email = mb_strtolower(trim($email));
         $telefone = trim($telefone);
+        $cpf = Usuario::somenteDigitos($cpf);
+        $cnpj = Usuario::somenteDigitos($cnpj);
+        $cep = Usuario::somenteDigitos($cep);
 
         if (!Usuario::validarNome($nome)) {
             return [
@@ -41,6 +47,30 @@ class UsuarioController
             return [
                 'sucesso' => false,
                 'mensagem' => 'Informe um telefone válido com DDD.',
+                'status' => 422,
+            ];
+        }
+
+        if (!Usuario::validarCep($cep)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Informe um CEP válido com 8 dígitos.',
+                'status' => 422,
+            ];
+        }
+
+        if (!Usuario::validarCpf($cpf)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Informe um CPF válido.',
+                'status' => 422,
+            ];
+        }
+
+        if (!Usuario::validarCnpj($cnpj)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Informe um CNPJ válido da empresa.',
                 'status' => 422,
             ];
         }
@@ -69,12 +99,31 @@ class UsuarioController
             ];
         }
 
+        if ($this->usuarioModel->cpfEmUso($cpf)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Este CPF já está cadastrado.',
+                'status' => 409,
+            ];
+        }
+
+        if ($this->usuarioModel->cnpjEmUso($cnpj)) {
+            return [
+                'sucesso' => false,
+                'mensagem' => 'Este CNPJ já está cadastrado.',
+                'status' => 409,
+            ];
+        }
+
         try {
             $this->usuarioModel->criarCliente(
                 $nome,
                 $email,
                 $senha,
-                $telefone
+                $telefone,
+                $cpf,
+                $cnpj,
+                $cep
             );
 
             return [
@@ -103,6 +152,7 @@ class UsuarioController
     public function atualizarProprioPerfil(
         int $idUsuario,
         string $telefone,
+        string $cep,
         ?array $fotoPerfil,
         bool $removerFoto
     ): array {
@@ -112,9 +162,13 @@ class UsuarioController
         }
 
         $telefone = trim($telefone);
+        $cep = Usuario::somenteDigitos($cep);
         $digitosTelefone = preg_replace('/\D+/', '', $telefone) ?? '';
         if ($perfil['tipo'] === 'cliente' && (strlen($digitosTelefone) < 10 || strlen($digitosTelefone) > 15)) {
             return ['sucesso' => false, 'mensagem' => 'Informe um telefone válido com DDD.'];
+        }
+        if ($perfil['tipo'] === 'cliente' && !Usuario::validarCep($cep)) {
+            return ['sucesso' => false, 'mensagem' => 'Informe um CEP válido com 8 dígitos.'];
         }
 
         $fotoAnterior = (string) ($perfil['foto_perfil'] ?? '');
@@ -128,8 +182,12 @@ class UsuarioController
             }
 
             if ($perfil['tipo'] === 'cliente'
-                && !$this->usuarioModel->atualizarTelefoneDoCliente($idUsuario, $telefone !== '' ? $telefone : null)) {
-                throw new RuntimeException('Não foi possível atualizar o telefone.');
+                && !$this->usuarioModel->atualizarDadosDoCliente(
+                    $idUsuario,
+                    $telefone !== '' ? $telefone : null,
+                    $cep
+                )) {
+                throw new RuntimeException('Não foi possível atualizar os dados de contato.');
             }
 
             if ($alterarFoto) {
@@ -170,6 +228,9 @@ class UsuarioController
         $senha = (string) ($dados['senha'] ?? '');
         $tipo = (string) ($dados['tipo'] ?? 'cliente');
         $telefone = trim((string) ($dados['telefone'] ?? ''));
+        $cpf = Usuario::somenteDigitos((string) ($dados['cpf'] ?? ''));
+        $cnpj = Usuario::somenteDigitos((string) ($dados['cnpj'] ?? ''));
+        $cep = Usuario::somenteDigitos((string) ($dados['cep'] ?? ''));
         $ativo = isset($dados['ativo']) && (string) $dados['ativo'] === '1';
 
         if (!Usuario::validarNome($nome)) {
@@ -180,6 +241,15 @@ class UsuarioController
         }
         if (!in_array($tipo, ['cliente', 'admin'], true)) {
             return ['sucesso' => false, 'mensagem' => 'Selecione um tipo de usuário válido.'];
+        }
+        if ($tipo === 'cliente' && !Usuario::validarCpf($cpf)) {
+            return ['sucesso' => false, 'mensagem' => 'Informe um CPF válido para o cliente.'];
+        }
+        if ($tipo === 'cliente' && !Usuario::validarCnpj($cnpj)) {
+            return ['sucesso' => false, 'mensagem' => 'Informe um CNPJ válido da empresa.'];
+        }
+        if ($tipo === 'cliente' && !Usuario::validarCep($cep)) {
+            return ['sucesso' => false, 'mensagem' => 'Informe um CEP válido com 8 dígitos.'];
         }
         if ($idUsuario === 0 && !Usuario::validarSenha($senha)) {
             return ['sucesso' => false, 'mensagem' => 'A senha deve ter entre 8 e 72 caracteres.'];
@@ -192,10 +262,16 @@ class UsuarioController
         if ($emailExistente && (int) $emailExistente['id_usuario'] !== $idUsuario) {
             return ['sucesso' => false, 'mensagem' => 'Este e-mail já está cadastrado.'];
         }
+        if ($tipo === 'cliente' && $this->usuarioModel->cpfEmUso($cpf, $idUsuario)) {
+            return ['sucesso' => false, 'mensagem' => 'Este CPF já está cadastrado.'];
+        }
+        if ($tipo === 'cliente' && $this->usuarioModel->cnpjEmUso($cnpj, $idUsuario)) {
+            return ['sucesso' => false, 'mensagem' => 'Este CNPJ já está cadastrado.'];
+        }
 
         try {
             if ($idUsuario === 0) {
-                $this->usuarioModel->criarGerenciado($nome, $email, $senha, $tipo, $ativo, $telefone);
+                $this->usuarioModel->criarGerenciado($nome, $email, $senha, $tipo, $ativo, $telefone, $cpf, $cnpj, $cep);
                 return ['sucesso' => true, 'mensagem' => 'Usuário criado com sucesso.'];
             }
 
@@ -226,7 +302,10 @@ class UsuarioController
                 $senha !== '' ? $senha : null,
                 $tipo,
                 $ativo,
-                $telefone
+                $telefone,
+                $cpf,
+                $cnpj,
+                $cep
             );
             return ['sucesso' => true, 'mensagem' => 'Usuário atualizado com sucesso.'];
         } catch (PDOException $e) {

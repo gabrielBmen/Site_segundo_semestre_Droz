@@ -78,11 +78,19 @@ include __DIR__ . '/../includes/header.php';
                 </p>
 
                 <div class="info-card rounded-4 p-4 mb-4">
-                    <div class="small text-white-50">Preço</div>
-                    <div class="display-5 fw-bold"><?= moeda($produto['preco']) ?></div>
-                    <div class="text-white-50 mt-2">
-                        Estoque disponível: <?= (int) $produto['estoque'] ?>
-                    </div>
+                    <?php if ((bool) $produto['permite_pedido']): ?>
+                        <div class="small text-white-50">Preço</div>
+                        <div class="display-5 fw-bold"><?= moeda($produto['preco']) ?></div>
+                        <div class="text-white-50 mt-2">
+                            Estoque disponível: <?= (int) $produto['estoque'] ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="small text-white-50">Atendimento</div>
+                        <div class="display-5 fw-bold">Sob orçamento</div>
+                        <div class="text-white-50 mt-2">
+                            Solicite uma proposta personalizada para esta solução.
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <?php if ($adminLogado): ?>
@@ -93,18 +101,23 @@ include __DIR__ . '/../includes/header.php';
                         <i class="bi bi-pencil-square me-1"></i> Gerenciar produto
                     </a>
                 <?php elseif ((bool) $produto['permite_pedido'] && (int) $produto['estoque'] > 0): ?>
-                    <form method="POST" action="carrinho.php" class="d-inline-flex flex-wrap align-items-end gap-2">
-                        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                        <input type="hidden" name="acao" value="adicionar">
-                        <input type="hidden" name="id_produto" value="<?= (int) $produto['id_produto'] ?>">
-                        <div>
-                            <label for="quantidade" class="form-label small text-white-50 mb-1">Quantidade</label>
-                            <input id="quantidade" name="quantidade" type="number" class="form-control" min="1" max="<?= (int) $produto['estoque'] ?>" value="1">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-lg px-4">
-                            <i class="bi bi-cart-plus me-1"></i> Adicionar ao pedido
-                        </button>
-                    </form>
+                    <div class="d-flex flex-wrap align-items-end gap-2">
+                        <form method="POST" action="carrinho.php" class="d-flex flex-wrap align-items-end gap-2">
+                            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                            <input type="hidden" name="acao" value="adicionar">
+                            <input type="hidden" name="id_produto" value="<?= (int) $produto['id_produto'] ?>">
+                            <div>
+                                <label for="quantidade" class="form-label small text-white-50 mb-1">Quantidade</label>
+                                <input id="quantidade" name="quantidade" type="number" class="form-control" min="1" max="<?= (int) $produto['estoque'] ?>" value="1">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg px-4">
+                                <i class="bi bi-cart-plus me-1"></i> Adicionar ao pedido
+                            </button>
+                        </form>
+                        <a href="produtos.php" class="btn btn-outline-light btn-lg px-4">
+                            Voltar ao catálogo
+                        </a>
+                    </div>
                 <?php else: ?>
                     <div class="alert alert-info rounded-4 border-0 mb-3">
                         Esta solução é atendida por orçamento personalizado.
@@ -112,11 +125,10 @@ include __DIR__ . '/../includes/header.php';
                     <a href="contato.php?produto_id=<?= (int) $produto['id_produto'] ?>" class="btn btn-primary btn-lg px-4">
                         Solicitar orçamento
                     </a>
+                    <a href="produtos.php" class="btn btn-outline-light btn-lg px-4 ms-2">
+                        Voltar ao catálogo
+                    </a>
                 <?php endif; ?>
-
-                <a href="produtos.php" class="btn btn-outline-light btn-lg px-4 ms-2">
-                    Voltar ao catálogo
-                </a>
             </div>
         </div>
     </div>

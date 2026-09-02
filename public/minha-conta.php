@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $resultado = $usuarioController->atualizarProprioPerfil(
             $idUsuario,
             (string) ($_POST['telefone'] ?? ''),
+            (string) ($_POST['cep'] ?? ''),
             isset($_FILES['foto_perfil']) && is_array($_FILES['foto_perfil']) ? $_FILES['foto_perfil'] : null,
             isset($_POST['remover_foto']) && $_POST['remover_foto'] === '1'
         );
@@ -110,6 +111,7 @@ include __DIR__ . '/../includes/header.php';
                         <div><span>Tipo de acesso</span><strong><?= $perfil['tipo'] === 'admin' ? 'Administrador' : 'Cliente' ?></strong></div>
                         <?php if ($perfil['tipo'] === 'cliente'): ?>
                             <div><span>Telefone</span><strong><?= e($perfil['telefone'] ?: 'Não informado') ?></strong></div>
+                            <div><span>CEP</span><strong><?= e($perfil['cep'] ?: 'Não informado') ?></strong></div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -143,6 +145,10 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="col-md-6">
                                     <label for="telefonePerfil" class="form-label">Telefone</label>
                                     <input id="telefonePerfil" name="telefone" type="tel" class="form-control" maxlength="30" autocomplete="tel" value="<?= e($perfil['telefone'] ?? '') ?>" placeholder="(44) 99999-9999" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="cepPerfil" class="form-label">CEP</label>
+                                    <input id="cepPerfil" name="cep" type="text" class="form-control" inputmode="numeric" maxlength="9" value="<?= e($perfil['cep'] ?? '') ?>" placeholder="00000-000" required>
                                 </div>
                             <?php endif; ?>
                             <div class="col-md-6">

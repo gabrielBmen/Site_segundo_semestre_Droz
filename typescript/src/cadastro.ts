@@ -15,11 +15,17 @@ document.addEventListener('DOMContentLoaded', (): void => {
         const nome = document.getElementById('nome');
         const email = document.getElementById('emailCadastro');
         const telefone = document.getElementById('telefone');
+        const cep = document.getElementById('cepCadastro');
+        const cpf = document.getElementById('cpfCadastro');
+        const cnpj = document.getElementById('cnpjCadastro');
         const senha = document.getElementById('senhaCadastro');
         const confirmarSenha = document.getElementById('confirmarSenha');
         if (!(nome instanceof HTMLInputElement)
             || !(email instanceof HTMLInputElement)
             || !(telefone instanceof HTMLInputElement)
+            || !(cep instanceof HTMLInputElement)
+            || !(cpf instanceof HTMLInputElement)
+            || !(cnpj instanceof HTMLInputElement)
             || !(senha instanceof HTMLInputElement)
             || !(confirmarSenha instanceof HTMLInputElement)) return;
 
@@ -27,6 +33,9 @@ document.addEventListener('DOMContentLoaded', (): void => {
             nome: nome.value.trim(),
             email: email.value.trim(),
             telefone: telefone.value.trim(),
+            cep: cep.value.trim(),
+            cpf: cpf.value.trim(),
+            cnpj: cnpj.value.trim(),
             senha: senha.value,
             confirmar_senha: confirmarSenha.value
         };
