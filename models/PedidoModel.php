@@ -61,6 +61,133 @@ class PedidoModel
         return $produto ?: null;
     }
 
+    public function listarClientesParaVendaManual(): array
+    {
+        $stmt = $this->pdo->query(
+            "SELECT c.id_cliente, c.nome, c.email
+             FROM clientes c
+             INNER JOIN usuarios u ON u.id_usuario = c.id_usuario
+             WHERE u.ativo = TRUE
+             ORDER BY c.nome ASC, c.id_cliente ASC"
+        );
+
+        return array_map(static fn (array $cliente): array => [
+            'id_cliente' => (int) $cliente['id_cliente'],
+            'nome' => (string) $cliente['nome'],
+            'email' => (string) $cliente['email'],
+        ], $stmt->fetchAll());
+    }
+
+    /**
+     * Registra uma venda fechada pelo administrador sem alterar o preço público
+     * do produto. O valor negociado fica salvo somente no item do pedido.
+     */
+    public function criarVendaManual(
+        int $idCliente,
+        int $idProduto,
+        int $quantidade,
+        float $precoUnitario
+    ): int {
+        if ($idCliente <= 0 || $idProduto <= 0 || $quantidade <= 0 || $precoUnitario <= 0) {
+            throw new InvalidArgumentException('Os dados da venda são inválidos.');
+        }
+
+        $precoUnitario = round($precoUnitario, 2);
+        $valorTotal = round($precoUnitario * $quantidade, 2);
+
+        if ($valorTotal > 99999999.99) {
+            throw new InvalidArgumentException('O valor total da venda excede o limite permitido.');
+        }
+
+        $transacaoPropria = !$this->pdo->inTransaction();
+        if ($transacaoPropria) {
+            $this->pdo->beginTransaction();
+        }
+
+        try {
+            $buscarCliente = $this->pdo->prepare(
+                "SELECT c.id_cliente
+                 FROM clientes c
+                 INNER JOIN usuarios u ON u.id_usuario = c.id_usuario
+                 WHERE c.id_cliente = :id_cliente AND u.ativo = TRUE
+                 LIMIT 1"
+            );
+            $buscarCliente->execute([':id_cliente' => $idCliente]);
+
+            if (!$buscarCliente->fetchColumn()) {
+                throw new RuntimeException('Selecione um cliente ativo para registrar a venda.');
+            }
+
+            $buscarProduto = $this->pdo->prepare(
+                "SELECT id_produto, nome, estoque
+                 FROM produtos
+                 WHERE id_produto = :id_produto AND ativo = TRUE
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            $buscarProduto->execute([':id_produto' => $idProduto]);
+            $produto = $buscarProduto->fetch();
+
+            if (!$produto) {
+                throw new RuntimeException('O produto selecionado não está ativo.');
+            }
+
+            if ($quantidade > (int) $produto['estoque']) {
+                throw new RuntimeException(
+                    'Estoque insuficiente para “' . $produto['nome'] . '”. Disponível: ' . (int) $produto['estoque'] . '.'
+                );
+            }
+
+            $stmtPedido = $this->pdo->prepare(
+                "INSERT INTO pedidos (id_cliente, valor_total, status)
+                 VALUES (:id_cliente, :valor_total, 'concluido')"
+            );
+            $stmtPedido->execute([
+                ':id_cliente' => $idCliente,
+                ':valor_total' => $valorTotal,
+            ]);
+            $idPedido = (int) $this->pdo->lastInsertId();
+
+            $stmtItem = $this->pdo->prepare(
+                "INSERT INTO pedido_produto (id_pedido, id_produto, quantidade, preco_unitario)
+                 VALUES (:id_pedido, :id_produto, :quantidade, :preco_unitario)"
+            );
+            $stmtItem->execute([
+                ':id_pedido' => $idPedido,
+                ':id_produto' => $idProduto,
+                ':quantidade' => $quantidade,
+                ':preco_unitario' => $precoUnitario,
+            ]);
+
+            $baixarEstoque = $this->pdo->prepare(
+                "UPDATE produtos
+                 SET estoque = estoque - :quantidade_baixa
+                 WHERE id_produto = :id_produto AND estoque >= :quantidade_minima"
+            );
+            $baixarEstoque->execute([
+                ':quantidade_baixa' => $quantidade,
+                ':quantidade_minima' => $quantidade,
+                ':id_produto' => $idProduto,
+            ]);
+
+            if ($baixarEstoque->rowCount() !== 1) {
+                throw new RuntimeException('O estoque mudou durante o registro. Atualize a página e tente novamente.');
+            }
+
+            if ($transacaoPropria) {
+                $this->pdo->commit();
+            }
+
+            return $idPedido;
+        } catch (Throwable $e) {
+            if ($transacaoPropria && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $e;
+        }
+    }
+
     /**
      * Cria um pedido pendente, registra os itens e baixa o estoque na mesma transação.
      * O preço usado é sempre o que está salvo no banco no momento da finalização.

@@ -8,13 +8,13 @@ class ProdutoController
     {
     }
 
-    public function listar(?string $busca = null, ?int $idCategoria = null): array
+    public function listar(?string $busca = null, ?int $idCategoria = null, ?string $canal = null): array
     {
         return [
             'sucesso' => true,
             'dados' => array_map(
                 fn (array $produto): array => $this->normalizarProduto($produto),
-                $this->produtoModel->listar($busca, $idCategoria)
+                $this->produtoModel->listar($busca, $idCategoria, $canal)
             ),
         ];
     }

@@ -104,6 +104,14 @@ $categoria = trim(
     $_GET['categoria'] ?? ''
 );
 
+$canal = trim(
+    $_GET['canal'] ?? ''
+);
+
+if (!in_array($canal, ['online', 'orcamento'], true)) {
+    $canal = '';
+}
+
 
 /*
 |--------------------------------------------------------------------------
@@ -177,6 +185,22 @@ if ($categoria !== '') {
 
 /*
 |--------------------------------------------------------------------------
+| FILTRO POR CANAL DE VENDA
+|--------------------------------------------------------------------------
+*/
+
+if ($canal !== '') {
+    $pedidoOnline = $canal === 'online';
+
+    $lista = array_filter(
+        $lista,
+        fn (array $produto): bool => (bool) $produto['permite_pedido'] === $pedidoOnline
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
 | BUSCAR CATEGORIAS
 |--------------------------------------------------------------------------
 |
@@ -212,14 +236,38 @@ $categorias = array_values(
 
 /*
 |--------------------------------------------------------------------------
-| PRODUTO DE DESTAQUE
+| PRODUTO MAIS VENDIDO
 |--------------------------------------------------------------------------
 */
 
-$destaquesFiltrados = buscarProdutoPorSlug(
-    $catalogoProdutos,
-    'celula-robotizada-csr1'
+$produtoMaisVendido = null;
+$quantidadeMaisVendida = 0;
+
+$stmtMaisVendido = $pdo->query(
+    "SELECT pp.id_produto, SUM(pp.quantidade) AS quantidade_vendida
+     FROM pedido_produto pp
+     INNER JOIN pedidos pe ON pe.id_pedido = pp.id_pedido
+     INNER JOIN produtos p ON p.id_produto = pp.id_produto
+     WHERE pe.status <> 'cancelado' AND p.ativo = TRUE
+     GROUP BY pp.id_produto
+     ORDER BY quantidade_vendida DESC,
+              SUM(pp.quantidade * pp.preco_unitario) DESC,
+              pp.id_produto ASC
+     LIMIT 1"
 );
+$maisVendidoBanco = $stmtMaisVendido->fetch(PDO::FETCH_ASSOC);
+
+if ($maisVendidoBanco) {
+    $idMaisVendido = (int) $maisVendidoBanco['id_produto'];
+    $quantidadeMaisVendida = (int) $maisVendidoBanco['quantidade_vendida'];
+
+    foreach ($catalogoProdutos as $produtoCatalogo) {
+        if ((int) $produtoCatalogo['id_produto'] === $idMaisVendido) {
+            $produtoMaisVendido = $produtoCatalogo;
+            break;
+        }
+    }
+}
 
 
 /*
@@ -232,7 +280,7 @@ include __DIR__ . '/../includes/header.php';
 
 ?>
 
-<link rel="stylesheet" href="/assets/css/style.css?v=4">
+<link rel="stylesheet" href="/assets/css/style.css?v=7">
 
 <section class="py-5">
 
@@ -240,7 +288,7 @@ include __DIR__ . '/../includes/header.php';
 
         <div class="row align-items-end g-3 mb-4">
 
-            <div class="col-lg-7">
+            <div class="col-lg-5">
 
                 <h1 class="section-title">
                     Catálogo de soluções
@@ -254,7 +302,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
 
 
-            <div class="col-lg-5">
+            <div class="col-lg-7">
 
                 <form
                     method="get"
@@ -263,7 +311,7 @@ include __DIR__ . '/../includes/header.php';
 
                     <div class="row g-2">
 
-                        <div class="col-md-7">
+                        <div class="col-md-4">
 
                             <input
                                 type="text"
@@ -344,6 +392,17 @@ include __DIR__ . '/../includes/header.php';
                                 </div>
 
                             </div>
+
+                        </div>
+
+
+                        <div class="col-md-3">
+
+                            <select name="canal" class="form-select" aria-label="Filtrar por canal de venda">
+                                <option value="" <?= $canal === '' ? 'selected' : '' ?>>Todos os canais</option>
+                                <option value="online" <?= $canal === 'online' ? 'selected' : '' ?>>Pedido online</option>
+                                <option value="orcamento" <?= $canal === 'orcamento' ? 'selected' : '' ?>>Sob orçamento</option>
+                            </select>
 
                         </div>
 
@@ -482,7 +541,7 @@ include __DIR__ . '/../includes/header.php';
 
                         <p class="text-white-50 mb-0">
                             Tente outro termo de busca
-                            ou remova o filtro de categoria.
+                            ou remova os filtros selecionados.
                         </p>
 
                     </div>
@@ -495,7 +554,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
 
 
-        <?php if ($destaquesFiltrados): ?>
+        <?php if ($produtoMaisVendido): ?>
 
             <div class="row mt-5">
 
@@ -508,29 +567,27 @@ include __DIR__ . '/../includes/header.php';
                             <div class="col-md-8">
 
                                 <h4 class="fw-bold mb-2">
-                                    Destaque do catálogo
+                                    Produto mais vendido
                                 </h4>
 
                                 <p class="text-white-50 mb-0">
-                                    A CSR1 aparece como solução principal
-                                    para soldagem robotizada.
+                                    <strong class="text-white"><?= e($produtoMaisVendido['nome']) ?></strong>
+                                    lidera o catálogo considerando todos os pedidos não cancelados.
                                 </p>
 
                             </div>
 
 
                             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                                <?php if (!(bool) $destaquesFiltrados['permite_pedido']): ?>
-                                    <span class="display-6 fw-bold">Sob orçamento</span>
-                                <?php elseif (usuarioLogado()): ?>
-                                    <span class="display-6 fw-bold">
-                                        <?= moeda($destaquesFiltrados['preco']) ?>
-                                    </span>
-                                <?php else: ?>
-                                    <a href="produto.php?slug=<?= rawurlencode($destaquesFiltrados['slug']) ?>" class="btn btn-primary">
-                                        Entrar para ver o preço
-                                    </a>
-                                <?php endif; ?>
+                                <span class="display-6 fw-bold d-block">
+                                    <?= $quantidadeMaisVendida ?>
+                                </span>
+                                <small class="text-white-50 d-block mb-2">
+                                    <?= $quantidadeMaisVendida === 1 ? 'Unidade vendida' : 'Unidades vendidas' ?>
+                                </small>
+                                <a href="produto.php?slug=<?= rawurlencode($produtoMaisVendido['slug']) ?>" class="btn btn-primary">
+                                    Ver produto
+                                </a>
                             </div>
 
                         </div>

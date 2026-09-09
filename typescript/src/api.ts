@@ -4,6 +4,7 @@ type ApiResult<T> = {
     dados?: T;
     redirect?: string;
     id_produto?: number;
+    id_pedido?: number;
     usuario?: {
         id_usuario: number;
         nome: string;

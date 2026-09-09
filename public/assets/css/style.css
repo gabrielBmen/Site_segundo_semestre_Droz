@@ -286,7 +286,8 @@ section { position: relative; }
 }
 
 
-.catalogo-filtro .form-control {
+.catalogo-filtro .form-control,
+.catalogo-filtro .form-select {
     height: 42px;
 
     background: #172536;
@@ -308,13 +309,20 @@ section { position: relative; }
     color: #8b9bb0;
 }
 
+.catalogo-filtro .form-select {
+    padding-right: 2.25rem;
+    background-color: #172536;
+}
 
-.catalogo-filtro .form-control:hover {
+
+.catalogo-filtro .form-control:hover,
+.catalogo-filtro .form-select:hover {
     border-color: rgba(0, 199, 187, 0.45);
 }
 
 
-.catalogo-filtro .form-control:focus {
+.catalogo-filtro .form-control:focus,
+.catalogo-filtro .form-select:focus {
     background: #1b2c40;
 
     border-color: var(--primary-2);
@@ -504,6 +512,7 @@ section { position: relative; }
 
 @media (max-width: 767.98px) {
     .catalogo-filtro .form-control,
+    .catalogo-filtro .form-select,
     .categoria-dropdown-toggle,
     .catalogo-filtro .btn-filtrar {
         height: 46px;

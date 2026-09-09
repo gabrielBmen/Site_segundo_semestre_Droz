@@ -22,6 +22,17 @@ const formatarDinheiroProduto = (valor) => {
         currency: 'BRL'
     }).format(valor);
 };
+const lerDinheiroProduto = (valor) => {
+    let texto = valor.replace('R$', '').replace(/\s+/g, '').trim();
+    if (texto.includes(',') && texto.includes('.')) {
+        texto = texto.replace(/\./g, '').replace(',', '.');
+    }
+    else if (texto.includes(',')) {
+        texto = texto.replace(',', '.');
+    }
+    const numero = Number(texto);
+    return texto !== '' && Number.isFinite(numero) ? numero : null;
+};
 const escapeHtml = (valor) => {
     const div = document.createElement('div');
     div.textContent = String(valor ?? '');
@@ -33,7 +44,10 @@ const caminhoImagem = (caminho) => {
     return caminho.startsWith('/') ? caminho : `/${caminho}`;
 };
 let categorias = [];
-let modal = null;
+let clientesVenda = [];
+let produtosVenda = [];
+let modalProduto = null;
+let modalVenda = null;
 const sincronizarCampoPreco = () => {
     const campoPreco = $('#produtoPreco');
     const permitePedido = $('#produtoPermitePedido');
@@ -89,13 +103,17 @@ const carregarProdutos = async () => {
         return;
     const buscaCampo = $('#buscaProduto');
     const categoriaCampo = $('#filtroCategoria');
+    const canalCampo = $('#filtroCanal');
     const busca = buscaCampo instanceof HTMLInputElement ? buscaCampo.value.trim() : '';
     const idCategoria = categoriaCampo instanceof HTMLSelectElement ? categoriaCampo.value : '';
+    const canal = canalCampo instanceof HTMLSelectElement ? canalCampo.value : '';
     const params = new URLSearchParams({ acao: 'listar' });
     if (busca)
         params.set('busca', busca);
     if (idCategoria)
         params.set('id_categoria', idCategoria);
+    if (canal)
+        params.set('canal', canal);
     tbody.innerHTML = '<tr><td colspan="9" class="text-white-50">Carregando produtos...</td></tr>';
     try {
         const resultado = await window.drozApi.getJson(`${API_PRODUTOS}?${params.toString()}`);
@@ -136,6 +154,9 @@ const carregarProdutos = async () => {
                         </span>
                     </td>
                     <td class="text-end text-nowrap">
+                        <button class="btn btn-sm btn-outline-success me-1" type="button" data-vender-produto="${produto.id_produto}" title="${produto.estoque > 0 && produto.ativo ? 'Registrar venda' : 'Produto sem estoque ou inativo'}" ${produto.estoque > 0 && produto.ativo ? '' : 'disabled'}>
+                            <i class="bi bi-cash-coin"></i>
+                        </button>
                         <button class="btn btn-sm btn-outline-light me-1" type="button" data-editar-produto="${produto.id_produto}" title="Editar">
                             <i class="bi bi-pencil-square"></i>
                         </button>
@@ -249,7 +270,7 @@ const previewNovasImagens = () => {
 };
 const abrirNovo = () => {
     limparForm();
-    modal?.show();
+    modalProduto?.show();
 };
 const abrirEditar = async (id) => {
     try {
@@ -258,7 +279,7 @@ const abrirEditar = async (id) => {
             throw new Error(resultado.mensagem ?? 'Produto não encontrado.');
         }
         preencherForm(resultado.dados);
-        modal?.show();
+        modalProduto?.show();
     }
     catch (erro) {
         mostrarAlertaProduto(erro instanceof Error ? erro.message : 'Não foi possível carregar o produto.', 'danger');
@@ -288,7 +309,7 @@ const salvarProduto = async (event) => {
         if (!resultado.sucesso) {
             throw new Error(resultado.mensagem ?? 'Não foi possível salvar o produto.');
         }
-        modal?.hide();
+        modalProduto?.hide();
         mostrarAlertaProduto(resultado.mensagem ?? 'Produto salvo com sucesso.');
         await carregarProdutos();
     }
@@ -327,11 +348,168 @@ const excluirProduto = async (id, nome) => {
         mostrarAlertaProduto(erro instanceof Error ? erro.message : 'Erro ao excluir produto.', 'danger');
     }
 };
+const preencherOpcoesVenda = () => {
+    const clienteCampo = $('#vendaCliente');
+    const buscaClienteCampo = $('#vendaClienteBusca');
+    const produtoCampo = $('#vendaProduto');
+    if (clienteCampo instanceof HTMLSelectElement) {
+        const clienteSelecionado = clienteCampo.value;
+        const termo = buscaClienteCampo instanceof HTMLInputElement
+            ? buscaClienteCampo.value.trim().toLocaleLowerCase('pt-BR')
+            : '';
+        const clientesFiltrados = termo === ''
+            ? clientesVenda
+            : clientesVenda.filter((cliente) => (`${cliente.nome} ${cliente.email}`.toLocaleLowerCase('pt-BR').includes(termo)));
+        const rotuloInicial = clientesFiltrados.length > 0
+            ? 'Selecione o cliente...'
+            : 'Nenhum cliente encontrado';
+        clienteCampo.innerHTML = `<option value="">${rotuloInicial}</option>` +
+            clientesFiltrados.map((cliente) => (`<option value="${cliente.id_cliente}">${escapeHtml(cliente.nome)} — ${escapeHtml(cliente.email)}</option>`)).join('');
+        if (clientesFiltrados.some((cliente) => String(cliente.id_cliente) === clienteSelecionado)) {
+            clienteCampo.value = clienteSelecionado;
+        }
+    }
+    if (produtoCampo instanceof HTMLSelectElement) {
+        produtoCampo.innerHTML = '<option value="">Selecione o produto...</option>' +
+            produtosVenda.map((produto) => {
+                const canal = produto.permite_pedido ? 'pedido online' : 'sob orçamento';
+                const indisponivel = !produto.ativo || produto.estoque <= 0;
+                const estado = !produto.ativo ? 'inativo' : `${produto.estoque} em estoque`;
+                return `<option value="${produto.id_produto}" ${indisponivel ? 'disabled' : ''}>${escapeHtml(produto.nome)} — ${canal} — ${estado}</option>`;
+            }).join('');
+    }
+};
+const carregarDadosVenda = async () => {
+    const resultado = await window.drozApi.getJson(`${API_PRODUTOS}?acao=dados_venda`);
+    if (!resultado.sucesso || !resultado.dados) {
+        throw new Error(resultado.mensagem ?? 'Não foi possível preparar o registro da venda.');
+    }
+    clientesVenda = Array.isArray(resultado.dados.clientes) ? resultado.dados.clientes : [];
+    produtosVenda = Array.isArray(resultado.dados.produtos) ? resultado.dados.produtos : [];
+    preencherOpcoesVenda();
+};
+const atualizarTotalVenda = () => {
+    const quantidadeCampo = $('#vendaQuantidade');
+    const precoCampo = $('#vendaPreco');
+    const totalElemento = $('#vendaTotal');
+    if (!(quantidadeCampo instanceof HTMLInputElement)
+        || !(precoCampo instanceof HTMLInputElement)
+        || !totalElemento)
+        return;
+    const quantidade = Number(quantidadeCampo.value);
+    const preco = lerDinheiroProduto(precoCampo.value);
+    const total = Number.isInteger(quantidade) && quantidade > 0 && preco !== null && preco > 0
+        ? quantidade * preco
+        : 0;
+    totalElemento.textContent = formatarDinheiroProduto(total);
+};
+const sincronizarProdutoVenda = (preencherPreco = true) => {
+    const produtoCampo = $('#vendaProduto');
+    const quantidadeCampo = $('#vendaQuantidade');
+    const precoCampo = $('#vendaPreco');
+    const estoqueAjuda = $('#vendaEstoqueAjuda');
+    const botao = $('#btnSalvarVenda');
+    if (!(produtoCampo instanceof HTMLSelectElement)
+        || !(quantidadeCampo instanceof HTMLInputElement)
+        || !(precoCampo instanceof HTMLInputElement))
+        return;
+    const produto = produtosVenda.find((item) => item.id_produto === Number(produtoCampo.value));
+    if (!produto) {
+        quantidadeCampo.removeAttribute('max');
+        if (estoqueAjuda)
+            estoqueAjuda.textContent = 'Selecione um produto para consultar o estoque.';
+        if (preencherPreco)
+            precoCampo.value = '';
+        if (botao instanceof HTMLButtonElement)
+            botao.disabled = true;
+        atualizarTotalVenda();
+        return;
+    }
+    quantidadeCampo.max = String(produto.estoque);
+    if (Number(quantidadeCampo.value) > produto.estoque || Number(quantidadeCampo.value) < 1) {
+        quantidadeCampo.value = produto.estoque > 0 ? '1' : '0';
+    }
+    if (preencherPreco) {
+        precoCampo.value = produto.permite_pedido && produto.preco !== null
+            ? produto.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : '';
+    }
+    if (estoqueAjuda) {
+        estoqueAjuda.textContent = produto.permite_pedido
+            ? `Estoque disponível: ${produto.estoque}. O preço atual foi sugerido e pode ser ajustado para esta venda.`
+            : `Estoque disponível: ${produto.estoque}. Informe o valor fechado no orçamento.`;
+    }
+    if (botao instanceof HTMLButtonElement) {
+        botao.disabled = !produto.ativo || produto.estoque <= 0;
+    }
+    atualizarTotalVenda();
+};
+const abrirVenda = async (idProduto) => {
+    const form = $('#vendaForm');
+    const produtoCampo = $('#vendaProduto');
+    if (!(form instanceof HTMLFormElement) || !(produtoCampo instanceof HTMLSelectElement))
+        return;
+    try {
+        form.reset();
+        await carregarDadosVenda();
+        if (clientesVenda.length === 0) {
+            mostrarAlertaProduto('Cadastre e ative pelo menos um cliente antes de registrar uma venda.', 'warning');
+            return;
+        }
+        const possuiProdutoDisponivel = produtosVenda.some((produto) => produto.ativo && produto.estoque > 0);
+        if (!possuiProdutoDisponivel) {
+            mostrarAlertaProduto('Não há produtos ativos com estoque disponível para venda.', 'warning');
+            return;
+        }
+        if (idProduto !== undefined) {
+            produtoCampo.value = String(idProduto);
+        }
+        sincronizarProdutoVenda(true);
+        modalVenda?.show();
+    }
+    catch (erro) {
+        mostrarAlertaProduto(erro instanceof Error ? erro.message : 'Não foi possível abrir o registro de venda.', 'danger');
+    }
+};
+const registrarVenda = async (event) => {
+    event.preventDefault();
+    const form = $('#vendaForm');
+    const botao = $('#btnSalvarVenda');
+    if (!(form instanceof HTMLFormElement) || !(botao instanceof HTMLButtonElement))
+        return;
+    botao.disabled = true;
+    botao.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Registrando...';
+    try {
+        const resultado = await window.drozApi.postFormData(API_PRODUTOS, new FormData(form));
+        if (!resultado.sucesso) {
+            throw new Error(resultado.mensagem ?? 'Não foi possível registrar a venda.');
+        }
+        modalVenda?.hide();
+        mostrarAlertaProduto(resultado.mensagem ?? 'Venda registrada com sucesso.');
+        await Promise.all([carregarProdutos(), carregarDadosVenda()]);
+    }
+    catch (erro) {
+        mostrarAlertaProduto(erro instanceof Error ? erro.message : 'Erro ao registrar a venda.', 'danger');
+    }
+    finally {
+        botao.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Confirmar venda';
+        sincronizarProdutoVenda(false);
+    }
+};
 const ligarEventos = () => {
     $('#btnNovoProduto')?.addEventListener('click', abrirNovo);
+    $('#btnRegistrarVenda')?.addEventListener('click', () => {
+        void abrirVenda();
+    });
     $('#produtoForm')?.addEventListener('submit', (event) => {
         void salvarProduto(event);
     });
+    $('#vendaForm')?.addEventListener('submit', (event) => {
+        void registrarVenda(event);
+    });
+    $('#vendaProduto')?.addEventListener('change', () => sincronizarProdutoVenda(true));
+    $('#vendaQuantidade')?.addEventListener('input', atualizarTotalVenda);
+    $('#vendaPreco')?.addEventListener('input', atualizarTotalVenda);
     $('#produtoImagens')?.addEventListener('change', previewNovasImagens);
     $('#produtoPermitePedido')?.addEventListener('change', sincronizarCampoPreco);
     $('#buscaProduto')?.addEventListener('input', () => {
@@ -343,12 +521,21 @@ const ligarEventos = () => {
     $('#filtroCategoria')?.addEventListener('change', () => {
         void carregarProdutos();
     });
+    $('#filtroCanal')?.addEventListener('change', () => {
+        void carregarProdutos();
+    });
+    $('#vendaClienteBusca')?.addEventListener('input', preencherOpcoesVenda);
     $('#produtosTableBody')?.addEventListener('click', (event) => {
         const alvo = event.target;
         if (!(alvo instanceof Element))
             return;
         const editar = alvo.closest('[data-editar-produto]');
+        const vender = alvo.closest('[data-vender-produto]');
         const excluir = alvo.closest('[data-excluir-produto]');
+        if (vender) {
+            void abrirVenda(Number(vender.dataset.venderProduto));
+            return;
+        }
         if (editar) {
             void abrirEditar(Number(editar.dataset.editarProduto));
             return;
@@ -365,12 +552,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const ModalClass = window.bootstrap?.Modal;
         if (ModalClass) {
             const elemento = $('#produtoModal');
+            const elementoVenda = $('#vendaModal');
             if (elemento instanceof HTMLElement) {
-                modal = new ModalClass(elemento);
+                modalProduto = new ModalClass(elemento);
+            }
+            if (elementoVenda instanceof HTMLElement) {
+                modalVenda = new ModalClass(elementoVenda);
             }
         }
         ligarEventos();
-        await carregarCategorias();
+        await Promise.all([carregarCategorias(), carregarDadosVenda()]);
         await carregarProdutos();
     }
     catch (erro) {

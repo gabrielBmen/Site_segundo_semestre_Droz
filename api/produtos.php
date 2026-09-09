@@ -6,13 +6,17 @@ require_once __DIR__ . '/../config/conexao.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/csrf.php';
 require_once __DIR__ . '/../models/ProdutoModel.php';
+require_once __DIR__ . '/../models/PedidoModel.php';
 require_once __DIR__ . '/../controllers/ProdutoController.php';
+require_once __DIR__ . '/../controllers/PedidoController.php';
 
 exigirAdminJson();
 
 try {
     $produtoModel = new ProdutoModel($pdo);
     $controller = new ProdutoController($produtoModel);
+    $pedidoModel = new PedidoModel($pdo);
+    $pedidoController = new PedidoController($pedidoModel);
     $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
     if ($metodo === 'GET') {
@@ -42,9 +46,30 @@ try {
             exit;
         }
 
+        if ($acao === 'dados_venda') {
+            $produtosVenda = array_map(static fn (array $produto): array => [
+                'id_produto' => (int) $produto['id_produto'],
+                'nome' => (string) $produto['nome'],
+                'estoque' => (int) $produto['estoque'],
+                'preco' => $produto['preco'] !== null ? (float) $produto['preco'] : null,
+                'permite_pedido' => (bool) $produto['permite_pedido'],
+                'ativo' => (bool) $produto['ativo'],
+            ], $produtoModel->listar());
+
+            echo json_encode([
+                'sucesso' => true,
+                'dados' => [
+                    'clientes' => $pedidoModel->listarClientesParaVendaManual(),
+                    'produtos' => $produtosVenda,
+                ],
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
         $busca = isset($_GET['busca']) ? trim((string) $_GET['busca']) : null;
         $idCategoria = isset($_GET['id_categoria']) ? (int) $_GET['id_categoria'] : null;
-        echo json_encode($controller->listar($busca, $idCategoria), JSON_UNESCAPED_UNICODE);
+        $canal = isset($_GET['canal']) ? trim((string) $_GET['canal']) : null;
+        echo json_encode($controller->listar($busca, $idCategoria, $canal), JSON_UNESCAPED_UNICODE);
         exit;
     }
 
@@ -134,6 +159,10 @@ try {
                 (int) ($_POST['id_produto'] ?? 0),
                 $_FILES['imagens'] ?? []
             );
+            break;
+
+        case 'registrar_venda':
+            $resultado = $pedidoController->registrarVendaManual($_POST);
             break;
 
         default:

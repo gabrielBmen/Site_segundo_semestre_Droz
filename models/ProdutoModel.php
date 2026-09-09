@@ -6,7 +6,7 @@ class ProdutoModel
     {
     }
 
-    public function listar(?string $busca = null, ?int $idCategoria = null): array
+    public function listar(?string $busca = null, ?int $idCategoria = null, ?string $canal = null): array
     {
         $sql = "
             SELECT
@@ -44,6 +44,12 @@ class ProdutoModel
         if ($idCategoria !== null && $idCategoria > 0) {
             $sql .= " AND p.id_categoria = :id_categoria";
             $params[':id_categoria'] = $idCategoria;
+        }
+
+        if ($canal === 'online') {
+            $sql .= " AND p.permite_pedido = TRUE";
+        } elseif ($canal === 'orcamento') {
+            $sql .= " AND p.permite_pedido = FALSE";
         }
 
         $sql .= " ORDER BY p.id_produto ASC";

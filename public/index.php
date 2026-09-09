@@ -53,6 +53,16 @@ if (!validarListaProdutos($catalogoProdutos)) {
     $catalogoProdutos = [];
 }
 
+$produtosPedidoOnline = array_values(array_filter(
+    $catalogoProdutos,
+    fn (array $produto): bool => (bool) $produto['permite_pedido']
+));
+
+$produtosSobOrcamento = array_values(array_filter(
+    $catalogoProdutos,
+    fn (array $produto): bool => !(bool) $produto['permite_pedido']
+));
+
 
 // =========================================================
 // PRODUTOS EM DESTAQUE
@@ -67,7 +77,7 @@ $destaques = array_slice($catalogoProdutos, 0, 3);
 
 $produtosCaros = filtrarProdutosPorPreco(
     $catalogoProdutos,
-    90000
+    1500
 );
 
 
@@ -78,22 +88,6 @@ $produtosCaros = filtrarProdutosPorPreco(
 $produtoCsr1 = buscarProdutoPorSlug(
     $catalogoProdutos,
     'celula-robotizada-csr1'
-);
-
-
-// =========================================================
-// CALCULAR DESCONTO
-// =========================================================
-
-$precoBase = $produtoCsr1
-    && (bool) $produtoCsr1['permite_pedido']
-    && $produtoCsr1['preco'] !== null
-    ? (float) $produtoCsr1['preco']
-    : 0.0;
-
-$descontoExemplo = aplicarDesconto(
-    $precoBase,
-    8
 );
 
 
@@ -765,7 +759,7 @@ include __DIR__ . '/../includes/header.php';
                             </p>
 
                             <p class="stat-label">
-                                itens no catálogo
+                                Itens no catálogo
                             </p>
 
                         </div>
@@ -782,7 +776,7 @@ include __DIR__ . '/../includes/header.php';
                             </p>
 
                             <p class="stat-label">
-                                soluções acima de R$ 90 mil
+                                Soluções acima de R$ 1.500,00
                             </p>
 
                         </div>
@@ -794,41 +788,30 @@ include __DIR__ . '/../includes/header.php';
 
                         <div class="glass-card principal-card rounded-4 p-4 h-100">
 
-                            <p class="text-uppercase text-white-50 small mb-2">
-                                Lógica de negócio aplicada
-                            </p>
-
 
                             <h4 class="fw-bold mb-3">
-                                Precificação automatizada
+                                Canais comerciais
                             </h4>
 
-
-                            <p class="display-6 fw-bold mb-2">
-
-                                <?php if (usuarioLogado()): ?>
-
-                            <div class="price">
-                                <?= moeda($descontoExemplo) ?>
-                            </div>
-
-                            <?php else: ?>
-
-                                <div class="price">
-                                    <i class="bi bi-lock-fill me-1"></i>
-                                    Preço protegido
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <div class="price"><?= count($produtosPedidoOnline) ?></div>
+                                    <small class="text-white-50">
+                                        <?= count($produtosPedidoOnline) === 1 ? 'Produto com pedido online' : 'Produtos com pedido online' ?>
+                                    </small>
                                 </div>
 
-                                <small class="text-white-50">
-                                    Faça login para visualizar a precificação.
-                                </small>
-                            <?php endif; ?>
-                            </p>
+                                <div class="col-sm-6">
+                                    <div class="price"><?= count($produtosSobOrcamento) ?></div>
+                                    <small class="text-white-50">
+                                        <?= count($produtosSobOrcamento) === 1 ? 'Solução sob orçamento' : 'Soluções sob orçamento' ?>
+                                    </small>
+                                </div>
+                            </div>
 
                             <span class="text-white-50">
-                                Cálculo automático de desconto comercial
-                                de 8%, evidenciando a aplicação de regras
-                                de negócio.
+                                Produtos online possuem preço definido para compra.
+                                Soluções personalizadas recebem valor somente após a negociação comercial.
                             </span>
 
                         </div>
