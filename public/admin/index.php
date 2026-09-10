@@ -3,6 +3,8 @@ $adminPagina = 'Dashboard';
 include __DIR__ . '/includes/header.php';
 ?>
 
+<link rel="stylesheet" href="/assets/admin/admin.css?v=<?= time() ?>">
+
 <div id="dashboardAlert" class="alert d-none" role="alert"></div>
 
 <form id="dashboardFilters" class="dashboard-card mb-4">
@@ -92,7 +94,7 @@ include __DIR__ . '/includes/header.php';
 
 <div class="row g-4">
     <div class="col-xl-7">
-        <div class="dashboard-card h-100">
+        <div id="statusPedidosCard" class="dashboard-card h-100">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
                     <div class="text-uppercase small text-white-50">Análise</div>
@@ -119,7 +121,7 @@ include __DIR__ . '/includes/header.php';
     <div class="col-xl-5">
         <div class="dashboard-card h-100">
             <div class="text-uppercase small text-white-50">Ranking</div>
-            <h2 class="h5 mb-3">Produtos mais vendidos</h2>
+            <h2 class="h5 mb-3">Top 3 produtos mais vendidos</h2>
             <div id="topProductsList" class="d-flex flex-column gap-2">
                 <div class="text-white-50">Carregando...</div>
             </div>
@@ -162,6 +164,6 @@ include __DIR__ . '/includes/header.php';
 </div>
 
 <script src="/assets/js/api.js?v=1"></script>
-<script src="/assets/js/dashboard.js?v=3"></script>
+<script src="/assets/js/dashboard.js?v=4"></script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

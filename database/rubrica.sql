@@ -130,7 +130,7 @@ BEGIN
     SELECT id_produto, produto, categoria, quantidade_vendida, faturamento
     FROM produto_totais
     ORDER BY quantidade_vendida DESC, faturamento DESC, produto ASC
-    LIMIT 5;
+    LIMIT 3;
 
     SELECT * FROM vw_pedido_itens_analiticos
     WHERE data_pedido >= p_inicio AND data_pedido < p_fim

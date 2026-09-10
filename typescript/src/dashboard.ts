@@ -161,12 +161,14 @@ const renderTopProdutos = (produtos: TopProduto[]): void => {
     const container = document.getElementById('topProductsList');
     if (!container) return;
 
-    if (produtos.length === 0) {
+    const topTresProdutos = produtos.slice(0, 3);
+
+    if (topTresProdutos.length === 0) {
         container.innerHTML = '<div class="text-white-50">Nenhum dado registrado.</div>';
         return;
     }
 
-    container.innerHTML = produtos.map((produto, indice) => `
+    container.innerHTML = topTresProdutos.map((produto, indice) => `
         <div class="admin-info-box d-flex justify-content-between align-items-center gap-3">
             <div>
                 <div class="fw-semibold">${indice + 1}. ${escaparHtml(produto.produto)}</div>

@@ -15,7 +15,7 @@ if (usuarioAdmin()) {
     <title>Login administrativo | DROZ Robótica</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/admin/admin.css?v=1">
+    <link rel="stylesheet" href="/assets/admin/admin.css?v=<?= time() ?>">
 </head>
 <body class="admin-login-body">
 <div class="admin-login-card">
